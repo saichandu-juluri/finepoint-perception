@@ -57,6 +57,7 @@
   .cmd { background: #0F172A; color: #E2E8F0; border-radius: 8px; padding: 10pt 12pt; margin: 6pt 0 10pt;
     font-family: var(--mono); font-size: 8.3pt; line-height: 1.6; white-space: pre-wrap; overflow-wrap: normal; }
   ol.steps .cmd { margin-left: -30pt; }
+  .cmd.one { font-size: 7.4pt; white-space: nowrap; }   /* one line, so it copies from the PDF as one command */
   .note { background: var(--accent-tint); border: 1px solid var(--accent-line); border-radius: 8px; padding: 8pt 12pt; margin: 8pt 0 12pt; }
   .note.warn { background: var(--warn-bg); border-color: var(--warn-line); }
   .note p:last-child { margin: 0; }
@@ -149,17 +150,7 @@
         <td>Two things: the <b>server address</b> (it starts with <span class="mono">https://</span>), and an <b>email with a set-password link</b>. Ask the FinePoint team if you have not got them.</td></tr>
   </table>
 
-  <div class="avoid">
-  <h3>The installer takes care of these</h3>
-  <p>You do not need to install anything else by hand. The links are here only if you want to read more.</p>
-  <table>
-    <tr><th>Tool</th><th>What it is</th></tr>
-    <tr><td>Command line developer tools (Mac)</td><td>Apple's free tools. The Mac offers them during the install. <a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a></td></tr>
-    <tr><td>Git</td><td>On a Mac it comes with the developer tools: <a href="https://git-scm.com/install/mac">Git for macOS</a>. On Windows the installer brings its own; you do not need <a href="https://git-scm.com/install/windows">Git for Windows</a>.</td></tr>
-    <tr><td>pixi</td><td>Sets up what the app needs to run. The installer adds it. <a href="https://pixi.prefix.dev/latest/installation/">pixi installation</a></td></tr>
-    <tr><td>A web browser</td><td>The app opens in your browser. Safari is on every Mac, and Microsoft Edge on every Windows PC. <a href="https://support.apple.com/guide/safari/welcome/mac">Safari guide</a>. Chrome also works: <a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download Chrome</a></td></tr>
-  </table>
-  </div>
+  <p>You do not need to install anything else by hand: the installer adds what the app needs (part 10 lists it).</p>
 </section>
 
 <section>
@@ -191,7 +182,7 @@
     <li><b>Open PowerShell.</b> Click <b>Start</b>, type <b>PowerShell</b>, and click <b>Windows PowerShell</b>.
       <a href="https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell">Starting Windows PowerShell</a></li>
     <li><b>Paste this line into PowerShell and press Enter.</b> To paste, right-click in the window, or press Ctrl and V together. It is one command.
-<div class="cmd">irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex</div>
+<div class="cmd one">irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex</div>
       If pasting from this PDF does not work, copy the line from the <a href="https://github.com/saichandu-juluri/finepoint-perception">project page</a> instead (it is under <b>Install on Windows</b>).
       <figure>
         <img src="images/11-powershell.png" alt="PowerShell window with the install line typed in">
@@ -305,6 +296,7 @@
   <ul>
     <li><p><b>The page asks you to sign in again.</b> Sign in again under <b>Upload to the cloud</b>. If you see <span class="ui">Sign out</span>, click it first.</p></li>
     <li><p><b>The server address changed.</b> Ask the FinePoint team for the new one. Click <span class="ui">Sign out</span>, then sign in again with the new address.</p></li>
+    <li><p><b>Windows stops the install</b>, with red text in PowerShell or a security warning. Send the FinePoint team a screenshot. On a hospital computer, the hospital's IT may need to allow the install first.</p></li>
     <li><p><b>Anything else.</b> Send the FinePoint team a screenshot.</p></li>
   </ul>
 
@@ -314,7 +306,7 @@
   <p><b>On a Mac</b>, open Terminal, paste this line and press Return.</p>
 <div class="cmd">git -C ~/finepoint-perception pull &amp;&amp; ~/finepoint-perception/install.command</div>
   <p><b>On Windows</b>, open PowerShell, paste the install line again and press Enter.</p>
-<div class="cmd">irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex</div>
+<div class="cmd one">irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex</div>
   </section>
 </section>
 
@@ -364,6 +356,18 @@
     <tr><td>Google Chrome (optional)</td><td><a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download and install Google Chrome</a><span class="url">support.google.com/chrome/answer/95346</span></td></tr>
     <tr><td>Let an app open folders</td><td><a href="https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac">Control access to files and folders on Mac</a><span class="url">support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac</span></td></tr>
   </table>
+
+  <div class="avoid">
+  <h3>The installer takes care of these</h3>
+  <p>You do not need to install anything else by hand. The links are here only if you want to read more.</p>
+  <table>
+    <tr><th>Tool</th><th>What it is</th></tr>
+    <tr><td>Command line developer tools (Mac)</td><td>Apple's free tools. The Mac offers them during the install. <a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a></td></tr>
+    <tr><td>Git</td><td>On a Mac it comes with the developer tools: <a href="https://git-scm.com/install/mac">Git for macOS</a>. On Windows the installer brings its own; you do not need <a href="https://git-scm.com/install/windows">Git for Windows</a>.</td></tr>
+    <tr><td>pixi</td><td>Sets up what the app needs to run. The installer adds it. <a href="https://pixi.prefix.dev/latest/installation/">pixi installation</a></td></tr>
+    <tr><td>A web browser</td><td>The app opens in your browser. Safari is on every Mac, and Microsoft Edge on every Windows PC. <a href="https://support.apple.com/guide/safari/welcome/mac">Safari guide</a>. Chrome also works: <a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download Chrome</a></td></tr>
+  </table>
+  </div>
 </section>
 
 </div>
