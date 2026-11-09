@@ -1,0 +1,48 @@
+# FinePoint Perception: one install for an Apple Silicon Mac (tested) and Windows (not run yet).
+# Python packages come from PyPI; conda-forge gives only Python, ffmpeg and node. Every version is pinned.
+[workspace]
+name = "finepoint-perception"
+channels = ["conda-forge"]
+platforms = [{ platform = "osx-arm64", macos = "14.0" }, "win-64"]
+
+# In every app environment
+[feature.base.dependencies]
+ffmpeg = { version = "==9.0.2", build = "gpl*" }   # only the gpl builds have libx264
+nodejs = "==26.12.1"
+
+# core: the app, the sync steps (cameras, scan, clock) and the uploader
+[feature.core.dependencies]
+python = "==3.13.18"
+
+[feature.core.pypi-dependencies]
+numpy = "==2.5.3"
+opencv-python = "==5.0.0.93"
+pyorbbecsdk2 = "==2.1.2"   # reads the depth camera's .bag files
+scipy = "==1.18.1"
+keyring = "==25.7.0"
+
+[feature.core.tasks]
+camrig = "python -m camrig.run"
+upload = "python -m camrig.upload"
+test-core = "python camrig/test_core.py"
+test-clock = "python camrig/test_clock.py"
+test-upload = "python camrig/test_upload.py"
+test-hand-sync = "python camrig/test_hand_sync.py"
+demo = "python cloud/demo.py"
+viewer = { cmd = "npm start", cwd = "viewer" }
+viewer-build = { cmd = "npm ci && npm run build", cwd = "viewer" }
+
+# cloud: the server, its local stand-in and their tests; boto3 only for the real S3 calls (docs/UPLOAD.md)
+[feature.cloud.dependencies]
+python = "==3.13.18"
+
+[feature.cloud.pypi-dependencies]
+boto3 = "==1.43.126"
+
+[feature.cloud.tasks]
+cloud-dev = "python cloud/dev_server.py"
+test-cloud = "python cloud/test_cloud.py"
+
+[environments]
+core = { features = ["base", "core"], no-default-feature = true }
+cloud = { features = ["cloud"], no-default-feature = true }

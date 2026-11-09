@@ -1,0 +1,25 @@
+.pixi
+Log
+__pycache__
+node_modules
+.next
+
+# session folders hold recordings and results; only the readme is shared
+sessions/*
+!sessions/README.md
+
+# made while the app runs, or by the Mac and editors
+.heavy.lock
+.cloud_dev/
+.DS_Store
+*.pyc
+.env*
+
+# Terraform's state and plans name the real server and account
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+cloud/terraform/.build/
+cloud/terraform/*.plan
+cloud/terraform/plan.json
