@@ -71,10 +71,13 @@ On a Windows 11 Home x64 PC (25H2, build 26200; English, ANSI code page 1252; Ch
    `irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex`, which
    runs in the PowerShell it is pasted into: no command line holds the download, and `iex` needs no execution policy.
    Pasted into Windows PowerShell from the Start menu, it installed the app from GitHub into
-   `%USERPROFILE%\finepoint-perception`, made both shortcuts and opened the app, with no detection. Through `iex` too,
-   it installed for a new user profile named `José Q`, with no pixi and no git on PATH, its clone pointed at the commit
-   under test: pixi 0.83.0 downloaded and checked against its SHA-256, git 2.56.0 through `pixi exec`, the clone, every
-   package downloaded fresh into the profile's own cache, the build, the shortcut, and the app opened, in 174 s.
+   `%USERPROFILE%\finepoint-perception`, made both shortcuts and opened the app, with no detection. Pasted again while
+   the app ran and an upload was under way, it stopped both, pulled the new commit, built, and opened the app, and the
+   upload carried on by itself to done, in 45 s. Sign out then took the token out of Credential Manager. Through
+   `iex` too, it installed for a new user profile named `José Q`, with no pixi and no git on PATH, its clone pointed at
+   the commit under test: pixi 0.83.0 downloaded and checked against its SHA-256, git 2.56.0 through `pixi exec`, the
+   clone, every package downloaded fresh into the profile's own cache, the build, the shortcut, and the app opened, in
+   174 s.
 2. The shortcut runs `start-finepoint-perception.pyw` with the environment's `pythonw.exe` and shows
    `finepoint-perception.ico`. Clicked, it opens the app with no window; the app's output goes to
    `%LOCALAPPDATA%\FinePoint Perception\FinePoint Perception.log`.
@@ -147,3 +150,5 @@ Each was confirmed on this PC against the code before the fixes.
   files.
 - The e2e ran in Chrome; Edge is only its fallback. A PC whose policy blocks PowerShell scripts or `pythonw.exe` was
   not tried.
+- Defender's machine-learning detections change with its updates. Here the README's line passed both times (install
+  and update), and the old line was stopped all three times it ran.
