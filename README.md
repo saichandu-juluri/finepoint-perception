@@ -4,6 +4,10 @@ Send a recording session from your Mac to your lab's cloud, and watch all its ca
 
 ## Watch how it works (1.5 minutes)
 
+
+https://github.com/user-attachments/assets/fc08ee6a-7357-4ec4-957a-66a737660c9b
+
+
 The video in full quality, and each step as its own short video: [videos](https://github.com/saichandu-juluri/finepoint-perception/releases/tag/video-2026-11-09).
 
 ## What you need
