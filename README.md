@@ -36,7 +36,7 @@ The video in full quality, and each step as its own short video: [videos](https:
 2. Paste this line into PowerShell (right-click, or press Ctrl+V) and press Enter:
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"
+   irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex
    ```
 
    The first time takes a few minutes. Then the app opens in your browser.
@@ -87,7 +87,7 @@ git -C ~/finepoint-perception pull && ~/finepoint-perception/install.command
 Paste the install line into PowerShell again and press Enter:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"
+irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex
 ```
 
 It stops the app if it runs, updates it, and opens it again. An upload carries on.

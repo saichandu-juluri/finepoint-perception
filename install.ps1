@@ -1,6 +1,8 @@
 # Installs FinePoint Perception on this Windows PC, or brings it up to date, and opens it in the browser. The README's one
-# line runs it straight from GitHub, and the same line updates it:
-#   powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"
+# line, pasted into PowerShell, runs it straight from GitHub, and the same line updates it:
+#   irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex
+# It runs in that PowerShell itself. Microsoft Defender stops a second PowerShell that has the download on its command
+# line (powershell -ExecutionPolicy Bypass -c "irm ... | iex") as malware, Trojan:Win32/Commando; iex needs no Bypass.
 # Run so, it gets the app into %USERPROFILE%\finepoint-perception with git, or updates it there. Run as a file
 # (powershell -ExecutionPolicy Bypass -File install.ps1), it installs the folder it is in, as that folder is. It asks
 # nothing (the server address, email and password go into the app's sign-in) and is safe to run again.
@@ -111,7 +113,7 @@ try {
 } catch {
   Write-Host ''
   Write-Host $_.Exception.Message -ForegroundColor Red
-  # The README's line runs this in a PowerShell of its own, whose exit code then says it failed. Pasted into an open
-  # PowerShell window instead, that window stays open with the message.
+  # Pasted into a PowerShell window (the README's line), the window stays open with the message. Run by a PowerShell of
+  # its own (-c, -File), its exit code says that it failed.
   if ([Environment]::GetCommandLineArgs() | Where-Object { $_ -match '^[-/](c|command|f|file|e|ec|encodedcommand)$' }) { exit 1 }
 }

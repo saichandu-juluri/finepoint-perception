@@ -190,8 +190,8 @@
   <ol class="steps">
     <li><b>Open PowerShell.</b> Click <b>Start</b>, type <b>PowerShell</b>, and click <b>Windows PowerShell</b>.
       <a href="https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell">Starting Windows PowerShell</a></li>
-    <li><b>Paste this line into PowerShell and press Enter.</b> To paste, right-click in the window, or press Ctrl and V together. It is one command, even though it wraps onto two lines.
-<div class="cmd">powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"</div>
+    <li><b>Paste this line into PowerShell and press Enter.</b> To paste, right-click in the window, or press Ctrl and V together. It is one command.
+<div class="cmd">irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex</div>
       If pasting from this PDF does not work, copy the line from the <a href="https://github.com/saichandu-juluri/finepoint-perception">project page</a> instead (it is under <b>Install on Windows</b>).
       <figure>
         <img src="images/11-powershell.png" alt="PowerShell window with the install line typed in">
@@ -314,7 +314,7 @@
   <p><b>On a Mac</b>, open Terminal, paste this line and press Return.</p>
 <div class="cmd">git -C ~/finepoint-perception pull &amp;&amp; ~/finepoint-perception/install.command</div>
   <p><b>On Windows</b>, open PowerShell, paste the install line again and press Enter.</p>
-<div class="cmd">powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"</div>
+<div class="cmd">irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex</div>
   </section>
 </section>
 

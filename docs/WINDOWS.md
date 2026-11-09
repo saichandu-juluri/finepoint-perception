@@ -64,10 +64,17 @@ On a Windows 11 Home x64 PC (25H2, build 26200; English, ANSI code page 1252; Ch
 
 ### Done means
 
-1. The one line. `install.ps1` ran as the line runs it (through `iex`, not as a file) for a new user profile named
-   `José Q`, with no pixi and no git on PATH, its clone pointed at the commit under test: pixi 0.83.0 downloaded and
-   checked against its SHA-256, git 2.56.0 through `pixi exec`, the clone, every package downloaded fresh into the
-   profile's own cache, the build, the shortcut, and the app opened, in 174 s.
+1. The one line. The line above, `powershell -ExecutionPolicy Bypass -c "irm -useb .../install.ps1 | iex"`, does not
+   work on this PC: Microsoft Defender takes that command line for malware (Trojan:Win32/Commando.C!ml, a
+   machine-learning detection), also when it is pasted into Windows PowerShell opened from the Start menu. PowerShell
+   then prints confusing errors, nothing is installed, and Defender reports a threat. The README's line is now
+   `irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex`, which
+   runs in the PowerShell it is pasted into: no command line holds the download, and `iex` needs no execution policy.
+   Pasted into Windows PowerShell from the Start menu, it installed the app from GitHub into
+   `%USERPROFILE%\finepoint-perception`, made both shortcuts and opened the app, with no detection. Through `iex` too,
+   it installed for a new user profile named `José Q`, with no pixi and no git on PATH, its clone pointed at the commit
+   under test: pixi 0.83.0 downloaded and checked against its SHA-256, git 2.56.0 through `pixi exec`, the clone, every
+   package downloaded fresh into the profile's own cache, the build, the shortcut, and the app opened, in 174 s.
 2. The shortcut runs `start-finepoint-perception.pyw` with the environment's `pythonw.exe` and shows
    `finepoint-perception.ico`. Clicked, it opens the app with no window; the app's output goes to
    `%LOCALAPPDATA%\FinePoint Perception\FinePoint Perception.log`.
@@ -78,6 +85,10 @@ On a Windows 11 Home x64 PC (25H2, build 26200; English, ANSI code page 1252; Ch
    opened the app again, and the upload carried on by itself to "Uploaded. Everything is in the cloud."
 5. Run (cameras pass; scan flag, as the clips show no board; clock flag), then Multi-view: both cameras load and Play
    all plays both. The single view of `toma ñ 2.mp4` plays. No console errors.
+
+Points 3 to 5 passed on both installs: `José Q`'s, with the file keyring, and the real one from GitHub with the desktop
+shortcut, where the sign-in kept its token in Credential Manager (a generic credential "FinePoint Perception", user the
+server address) and `.camrig\cloud.json` held none.
 
 ### Tests
 

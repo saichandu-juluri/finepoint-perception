@@ -8,14 +8,15 @@
   `FPP_APPS_DIR`), which runs `start-finepoint-perception.command` in the background with its output in
   `~/Library/Logs/FinePoint Perception.log`. Where pixi is missing it installs pixi 0.83.0, the version that made
   `pixi.lock`: change both together.
-- `install.ps1`: the same on Windows, which the README's PowerShell line downloads and runs. It clones the app into
+- `install.ps1`: the same on Windows. The README's line downloads it and runs it in the PowerShell it is pasted into;
+  Microsoft Defender stops `powershell -ExecutionPolicy Bypass -c "irm ... | iex"` as malware. It clones the app into
   `%USERPROFILE%\finepoint-perception`, or pulls there, with git from conda-forge (`pixi exec`), so a PC needs no git.
   Run as a file (`powershell -ExecutionPolicy Bypass -File install.ps1`) it installs its own folder as it is. Where pixi
   is missing it unpacks the pixi 0.83.0 release into `%USERPROFILE%\.pixi\bin` (not on PATH), checked against the
   SHA-256 in the script: change version and checksum together, with `pixi.lock`. It stops every process that runs from
   the app's folder (the app, an uploader, a step: Windows replaces no file that is open), installs, builds, and makes
-  the FinePoint Perception shortcut in the Start menu and on the desktop (in `FPP_APPS_DIR` for tests). The shortcut runs
-  `start-finepoint-perception.pyw` with the environment's `pythonw.exe`, which opens no window: it runs
+  the FinePoint Perception shortcut in the Start menu and on the desktop (in `FPP_APPS_DIR` for tests). The shortcut
+  runs `start-finepoint-perception.pyw` with the environment's `pythonw.exe`, which opens no window: it runs
   `start-finepoint-perception.bat` with no window either, its output in
   `%LOCALAPPDATA%\FinePoint Perception\FinePoint Perception.log`, and shows a message if the app did not start.
 
