@@ -5,7 +5,7 @@ import { Icon } from "@/components/Icon";
 import { NavLink } from "@/components/nav";
 import { RunPanel } from "@/components/RunPanel";
 import { UploadPanel } from "@/components/UploadPanel";
-import { fmtMin, fromParam, jobHref, plural, watchHref } from "@/lib/format";
+import { fileName, fmtMin, fromParam, jobHref, plural, watchHref } from "@/lib/format";
 import type { Session } from "@/lib/session";
 import { fmtClock } from "@/lib/srt";
 import { loadSession, project, readCameras, type CamerasJson, type SessionRef } from "@/server/camrig";
@@ -86,7 +86,7 @@ async function Recordings({ job, ref_, cams, s }: { job: string; ref_: SessionRe
                 return (
                   <tr key={p.key} data-file={p.file}>
                     <td className="c-part">{p.key}</td>
-                    <td className="c-file">{p.file.split("/").pop()}{p.bag && <span className="sub">from <span className="mono">{p.bag.split("/").pop()}</span>{p.missing ? ` · ${p.missing} frames lost` : ""}</span>}</td>
+                    <td className="c-file">{fileName(p.file)}{p.bag && <span className="sub">from <span className="mono">{fileName(p.bag)}</span>{p.missing ? ` · ${p.missing} frames lost` : ""}</span>}</td>
                     <td className="c-num">{fmtClock(p.seconds, 0)}</td>
                     <td className="c-num">{cp ? <><span className="mono">{fmtClock(cp.clock_from, 2)}</span> <span className="muted">to</span> <span className="mono">{fmtClock(cp.clock_to, 2)}</span></> : <span className="muted">not on the clock</span>}</td>
                     <td>{!p.sound ? <span className="tr-none">No sound</span> : !t ? <span className="tr-none">None yet</span>

@@ -4,6 +4,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState, type Dispatch, type
 import { cueIndexAt, fmtClock, parseClock } from "@/lib/srt";
 import { num } from "@/lib/format";
 import { Icon } from "../Icon";
+import { useKey } from "../keys";
 import { Spoken } from "../Spoken";
 import { changeCount, isChanged, overlapMs, problem, type Action, type EdCue, type EdState } from "./transcript";
 import { usePlayhead, type PlayheadStore, type VideoControls } from "./playhead";
@@ -49,6 +50,7 @@ export function Editor({ s, dispatch, store, ctl, srtName, txtName, saveTo, sour
   const [over, setOver] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const userAt = useRef(-Infinity);
+  const key = useKey();
   const q = s.query.trim().toLowerCase();
   const changes = changeCount(s);
   const empty = s.cues.length === 0;
@@ -99,10 +101,10 @@ export function Editor({ s, dispatch, store, ctl, srtName, txtName, saveTo, sour
           <span className="eyebrow">Transcript</span>
           <span className="grow" />
           {(!empty || s.exists || s.past.length > 0) && <>
-            <button type="button" className="icon-btn sm" aria-label="Undo (⌘Z)" title="Undo (⌘Z)" disabled={!s.past.length} onClick={() => dispatch({ type: "undo" })}><Icon name="undo" /></button>
-            <button type="button" className="icon-btn sm" aria-label="Redo (⇧⌘Z)" title="Redo (⇧⌘Z)" disabled={!s.future.length} onClick={() => dispatch({ type: "redo" })}><Icon name="redo" /></button>
-            <button type="button" className="btn primary sm" data-save onClick={actions.save} disabled={s.status === "saved" || s.status === "saving"} title={`Save the .srt and the .txt into ${saveTo} (⌘S)`}>
-              {s.status === "saving" ? "Saving…" : "Save"}<kbd>⌘S</kbd>
+            <button type="button" className="icon-btn sm" aria-label={`Undo (${key("cmd+Z")})`} title={`Undo (${key("cmd+Z")})`} disabled={!s.past.length} onClick={() => dispatch({ type: "undo" })}><Icon name="undo" /></button>
+            <button type="button" className="icon-btn sm" aria-label={`Redo (${key("shift+cmd+Z")})`} title={`Redo (${key("shift+cmd+Z")})`} disabled={!s.future.length} onClick={() => dispatch({ type: "redo" })}><Icon name="redo" /></button>
+            <button type="button" className="btn primary sm" data-save onClick={actions.save} disabled={s.status === "saved" || s.status === "saving"} title={`Save the .srt and the .txt into ${saveTo} (${key("cmd+S")})`}>
+              {s.status === "saving" ? "Saving…" : "Save"}<kbd>{key("cmd+S")}</kbd>
             </button>
           </>}
           <div className="menu-wrap">
@@ -257,6 +259,7 @@ function EditCard({ c, n, count, hasNext, bad, overlap, isNow, store, dispatch, 
 }) {
   const t = usePlayhead(store, p => Math.round(p.t * 1000));
   const area = useRef<HTMLTextAreaElement>(null);
+  const key = useKey();
   const inside = t > c.startMs && t < c.endMs;
   useLayoutEffect(() => {
     const el = area.current;
@@ -303,7 +306,7 @@ function EditCard({ c, n, count, hasNext, bad, overlap, isNow, store, dispatch, 
       </div>
       {bad && <div className="ec-msg bad"><Icon name="alert" />{bad} It must be fixed before saving.</div>}
       {overlap > 0 && <div className="ec-msg warn"><Icon name="info" />It overlaps the next cue by {secs(overlap)} s. That is allowed.</div>}
-      <div className="ec-why"><span data-why>{why}</span><span><kbd>Return</kbd> next <kbd>Esc</kbd> undo typing</span></div>
+      <div className="ec-why"><span data-why>{why}</span><span><kbd>{key("return")}</kbd> next <kbd>Esc</kbd> undo typing</span></div>
     </div>
   );
 }

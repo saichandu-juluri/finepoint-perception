@@ -70,12 +70,26 @@ export async function transcriptCounts(ref: SessionRef, cams: CamerasJson): Prom
   return out;
 }
 
+// A rename onto `file`. Windows refuses to replace a file that another process has open, and Python opens every file so:
+// the uploader or a step reading decisions.json holds it for milliseconds. So on Windows it is tried again, for up to 5 s
+// (as camrig/record.py replace).
+export async function renameOver(tmp: string, file: string): Promise<void> {
+  for (let wait = 10; ; wait *= 2) {
+    try {
+      return await fsp.rename(tmp, file);
+    } catch (e) {
+      if (process.platform !== "win32" || wait > 2560 || !["EPERM", "EACCES", "EBUSY"].includes((e as NodeJS.ErrnoException).code ?? "")) throw e;
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+}
+
 // Returns the file's modified time, read before the rename (which keeps it) so another writer cannot slip in between.
 async function writeAtomic(abs: string, text: string): Promise<number> {
   const tmp = `${abs}.tmp-${crypto.randomUUID()}.part`;
   await fsp.writeFile(tmp, text, "utf8");
   const { mtimeMs } = await fsp.stat(tmp);
-  await fsp.rename(tmp, abs);
+  await renameOver(tmp, abs);
   return mtimeMs;
 }
 
@@ -134,6 +148,11 @@ export function readAllowed(req: Request): boolean {
   const site = req.headers.get("sec-fetch-site"), h = (name: string) => req.headers.get(name);
   return localHost(req) && (!site || site === "same-origin" || site === "none" || (h("sec-fetch-mode") === "navigate" && h("sec-fetch-dest") === "document"));
 }
+
+// Windows: a path can name another computer (\\host\share\…), and opening it sends the person's Windows sign-in to that
+// computer. So there, the routes that open a path the request names (the folder browser, a picture from a video) answer
+// only this app's own pages, never a link followed from another site.
+export const ownPage = (req: Request) => process.platform !== "win32" || [null, "same-origin"].includes(req.headers.get("sec-fetch-site"));
 
 export function fromThisApp(req: Request): boolean {
   if (!localHost(req)) return false;

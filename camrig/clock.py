@@ -22,10 +22,11 @@ for missing frames and are never returned. "flag" holds a reason when the clock 
 """
 import csv
 import json
-import os
 from pathlib import Path
 
 import numpy as np
+
+from camrig.record import replace
 
 SCHEMA = "camrig.clock/1"
 
@@ -139,7 +140,7 @@ def write(path: Path, data: dict):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".json.part")
     tmp.write_text(json.dumps(data, indent=1))
-    os.replace(tmp, path)
+    replace(tmp, path)
 
 
 def from_sync_json(sync_path, names=None) -> dict:

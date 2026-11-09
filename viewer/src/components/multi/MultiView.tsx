@@ -7,6 +7,7 @@ import { camName, mediaUrl, num, waitText, watchHref } from "@/lib/format";
 import { flagMarks, partAt, period, shortLabel, timeOfClock, timeOfFrame, type Camera, type Part, type Session } from "@/lib/session";
 import type { RunState } from "@/server/run";
 import { Icon } from "../Icon";
+import { useKey } from "../keys";
 import { Spoken } from "../Spoken";
 import { NavLink, isTyping } from "../nav";
 import { HandMove } from "./HandMove";
@@ -37,6 +38,7 @@ export function MultiView({ job, session: s, density, cueCounts, initialClock, i
   const [stepKind, setStepKind] = useState<"depth" | "60">("depth");
   const [focus, setFocus] = useState<string | null>(null);
   const [captions, setCaptions] = useState(true);
+  const key = useKey();
   const depthCam = s.cameras.find(c => c.kind === "depth" && c.parts.length);
   const stepS = stepKind === "depth" && depthCam ? period(depthCam, depthCam.parts[0]) : 1 / 60;
 
@@ -131,7 +133,7 @@ export function MultiView({ job, session: s, density, cueCounts, initialClock, i
               {depthCam && <button type="button" aria-pressed={stepKind === "depth"} onClick={() => setStepKind("depth")}>Depth camera frame</button>}
             </div>
             <span className="grow" />
-            <span className="hint">Type a time, then <kbd>Return</kbd> · Click the bar to jump</span>
+            <span className="hint">Type a time, then <kbd>{key("return")}</kbd> · Click the bar to jump</span>
             <div className="legend" aria-hidden="true">
               <span><i style={{ width: 3, background: "var(--warn-dot)" }} />Flagged part</span>
               <span><i style={{ background: "var(--mark)", opacity: 0.55 }} />Cues per minute</span>
@@ -148,6 +150,7 @@ export function MultiView({ job, session: s, density, cueCounts, initialClock, i
 }
 
 function ClockField({ clock, min, max, onGo }: { clock: number; min: number; max: number; onGo: (c: number) => void }) {
+  const key = useKey();
   const [draft, setDraftState] = useState<string | null>(null);
   const draftRef = useRef<string | null>(null); // read on blur, which can come before the state update
   const edited = useRef(false); // a click in and out without typing must not move the clock
@@ -162,7 +165,7 @@ function ClockField({ clock, min, max, onGo }: { clock: number; min: number; max
     onGo(c);
   };
   return (
-    <input className={`clock-field${bad ? " bad" : ""}`} aria-label="Session clock, minutes:seconds" title="Type a time such as 45:00, 45:00.25 or −1:30, then press Return"
+    <input className={`clock-field${bad ? " bad" : ""}`} aria-label="Session clock, minutes:seconds" title={`Type a time such as 45:00, 45:00.25 or −1:30, then press ${key("return")}`}
       value={draft ?? fmtClock(clock, 2)} spellCheck={false} autoComplete="off" data-clock-field
       onFocus={e => { edited.current = false; setDraft(e.currentTarget.value); requestAnimationFrame(() => e.target.select()); }}
       onChange={e => { edited.current = true; setDraft(e.target.value); }} onBlur={go}

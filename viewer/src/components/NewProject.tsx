@@ -3,7 +3,7 @@
 // subfolder (a picture, its files and length) where the person confirms the names, the board, and Create.
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { fmtBytes, plural } from "@/lib/format";
+import { fileName, fmtBytes, pathParts, plural, windowsPath } from "@/lib/format";
 import { fmtClock } from "@/lib/srt";
 import type { Browse } from "@/server/newproject";
 import { Icon } from "./Icon";
@@ -26,7 +26,7 @@ export function NewProject({ root, home }: { root: string; home: string }) {
         setB(j);
         setNames(Object.fromEntries(j.cameras.map(c => [c.folder, c.name])));
         setUse(Object.fromEntries(j.cameras.map(c => [c.folder, true])));
-        setName(j.path.split("/").filter(Boolean).pop() ?? "");
+        setName(pathParts(j.path).pop() ?? "");
       }).catch(() => {});
     }, 250);
     return () => { clearTimeout(id); ctl.abort(); };
@@ -59,6 +59,11 @@ export function NewProject({ root, home }: { root: string; home: string }) {
         <p className={`note${b && !b.ok ? " bad-note" : ""}`} data-np-check={b ? (b.ok ? "ok" : "bad") : ""}>
           {!b ? "Looking…" : b.ok ? `${plural(b.cameras.length, "camera folder")} found here.` : b.error}
         </p>
+        {!!b?.drives?.length && (
+          <div className="np-dirs" data-np-drives>
+            {b.drives.map(d => <button type="button" key={d.path} className="btn ghost sm" onClick={() => setTyped(d.path)}><Icon name="folder" />{d.name}</button>)}
+          </div>
+        )}
         {!!b?.dirs.length && (
           <div className="np-dirs" data-np-dirs>
             {b.dirs.map(d => <button type="button" key={d.path} className="btn ghost sm" onClick={() => setTyped(d.path)}><Icon name="folder" />{d.name}</button>)}
@@ -74,9 +79,9 @@ export function NewProject({ root, home }: { root: string; home: string }) {
             <div className="np-cams" data-np-cams>
               {b.cameras.map(c => (
                 <div key={c.folder} className="np-cam" data-np-cam={c.name}>
-                  {c.first ? <img src={`/api/picture?file=${encodeURIComponent(c.first)}`} alt={`A picture from ${c.first.split("/").pop()}`} />
+                  {c.first ? <img src={`/api/picture?file=${encodeURIComponent(c.first)}`} alt={`A picture from ${fileName(c.first)}`} />
                     : <div className="np-noimg">Depth camera recording (.bag): its picture shows once the cameras step has exported it.</div>}
-                  <label><span><input type="checkbox" checked={!!use[c.folder]} onChange={e => setUse(u => ({ ...u, [c.folder]: e.target.checked }))} /> Use <span className="mono">{c.folder.split("/").pop()}</span></span></label>
+                  <label><span><input type="checkbox" checked={!!use[c.folder]} onChange={e => setUse(u => ({ ...u, [c.folder]: e.target.checked }))} /> Use <span className="mono">{fileName(c.folder)}</span></span></label>
                   <span className="muted" style={{ fontSize: 13.5 }}>{c.kind === "depth" ? "Depth camera" : "Action camera"} · {plural(c.files, c.kind === "depth" ? "recording" : "file")}{c.seconds != null ? ` · ${fmtClock(c.seconds, 0)}` : ""} · {fmtBytes(c.bytes)}</span>
                   <label>Name<input type="text" value={names[c.folder] ?? ""} onChange={e => setNames(n => ({ ...n, [c.folder]: e.target.value }))} data-np-name /></label>
                 </div>
@@ -94,7 +99,7 @@ export function NewProject({ root, home }: { root: string; home: string }) {
               <label>Session name<input type="text" value={name} onChange={e => setName(e.target.value)} style={{ width: 320 }} data-np-session /></label>
               <button type="button" className="btn primary lg" onClick={create} disabled={busy || chosen.length < 2 || !name.trim()} data-np-create><Icon name="check" />Create the project</button>
             </div>
-            <p className="note">The project file goes to <span className="mono">{root}/{name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")}/project.toml</span>. Create opens the session.</p>
+            <p className="note">The project file goes to <span className="mono">{[root, name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""), "project.toml"].join(windowsPath(root) ? "\\" : "/")}</span>. Create opens the session.</p>
             {err && <p className="note bad-note" data-np-error>{err}</p>}
           </section>
         </>

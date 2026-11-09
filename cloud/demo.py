@@ -48,13 +48,15 @@ def uploaders(roots: list[str]) -> list[int]:
     may since belong to an unrelated process."""
     tomls = [os.path.join(r, "project.toml") for r in roots] + [os.path.join(r, d, "project.toml") for r in roots
                                                                 if os.path.isdir(r) for d in os.listdir(r)]
-    if os.name == "nt":
-        ps = ["powershell", "-NoProfile", "-Command",
+    text = {"text": True}
+    if os.name == "nt":                                   # PowerShell writes to a pipe in the OEM code page unless told
+        ps = ["powershell", "-NoProfile", "-Command", "[Console]::OutputEncoding = New-Object Text.UTF8Encoding $false; "
               "Get-CimInstance Win32_Process | ForEach-Object { \"$($_.ProcessId) $($_.CommandLine)\" }"]
+        text = {"encoding": "utf-8", "errors": "replace"}
     else:
         ps = ["ps", "-axww", "-o", "pid=,args="]
     pids = []
-    for line in subprocess.run(ps, capture_output=True, text=True).stdout.splitlines():
+    for line in subprocess.run(ps, capture_output=True, **text).stdout.splitlines():
         pid, _, args = line.strip().partition(" ")
         args = args.replace('"', "") + " "                # Windows quotes a path with spaces
         if pid.isdigit() and int(pid) > 0 and int(pid) != os.getpid() and any(f"-m camrig.upload {t} " in args for t in tomls):

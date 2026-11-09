@@ -20,6 +20,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from camrig.record import replace
+
 SERVICE = "FinePoint Perception"
 SIGNED_OUT = "Signed out of the cloud: sign in again in the app"
 TIMEOUT_S = 30
@@ -128,7 +130,7 @@ def write_config(data: dict):
         json.dump(data, f, indent=2)
         f.write("\n")
     os.chmod(tmp, 0o600)
-    os.replace(tmp, path)
+    replace(tmp, path)
 
 
 def signin() -> dict:

@@ -16,8 +16,9 @@ ffmpeg, ffprobe and Python in `../.pixi/envs/core`.
 
 `start-finepoint-perception.command` in the app's folder starts the app and opens it in the browser. It builds the app
 first if needed. `install.command` makes `FinePoint Perception.app` in `~/Applications`, which runs it in the background
-with its output in `~/Library/Logs/FinePoint Perception.log` (`docs/DEVELOP.md`). On Windows, use
-`start-finepoint-perception.bat`.
+with its output in `~/Library/Logs/FinePoint Perception.log` (`docs/DEVELOP.md`). On Windows the same is
+`start-finepoint-perception.bat`, and `install.ps1` makes the FinePoint Perception shortcut in the Start menu and on the
+desktop, which runs it with no window, its output in `%LOCALAPPDATA%\FinePoint Perception\FinePoint Perception.log`.
 
 When the app starts, every upload that a restart cut off carries on. To have that happen at login without a click, add
 the app to the Mac's Login Items:
@@ -27,13 +28,14 @@ the app to the Mac's Login Items:
 3. Under Open at Login, click +, choose `FinePoint Perception.app` in the Applications folder of your home folder, and
    click Open.
 
-To stop it, remove the line from Open at Login. On Windows, put a shortcut to `start-finepoint-perception.bat` into the
-folder that `shell:startup` opens.
+To stop it, remove the line from Open at Login. On Windows, copy the FinePoint Perception shortcut from the desktop into
+the folder that `shell:startup` opens (type it into the Run box, Windows key and R); delete it there to stop.
 
 ## Where the sessions are
 
 A session is a folder holding a `project.toml`. The library lists the session folders inside the folders named in
-`CAMRIG_SESSIONS`, separated by `:`. A folder named there may also be a session itself. The default is `../sessions`.
+`CAMRIG_SESSIONS`, separated by `:` (`;` on Windows). A folder named there may also be a session itself. The default is
+`../sessions`.
 
     CAMRIG_SESSIONS=/Volumes/Data/sessions:/Volumes/Backup/sessions npm start
 
@@ -109,14 +111,14 @@ open is caught: an untouched transcript shows the new version, and edits get a b
 
 `npm run check` runs the transcript editor's state machine in Node.
 
-`npm run e2e` builds the app, then drives it in headless Chrome (`/Applications/Google Chrome.app`, or `CHROME`). It
-needs nothing outside the repo. Everything happens in a scratch folder (`E2E_TMP`, default the system temp folder) that
+`npm run e2e` builds the app, then drives it in headless Chrome (`/Applications/Google Chrome.app`; on Windows Chrome,
+else Edge; or `CHROME`). It needs nothing outside the repo. Everything happens in a scratch folder (`E2E_TMP`, default the system temp folder) that
 is deleted at the end: short clips made with ffmpeg, the sessions folders, a home folder and a test password safe
-(`camrig.keyring_file`), so the real `~/.camrig` and password safe are never touched. Three servers of the app run on
+(`camrig.keyring_file`), so the real `~/.camrig` and password safe (on Windows Credential Manager) are never touched. Three servers of the app run on
 free ports:
 
 - one not signed in: the library, New project from the clips, Run and the steps' statuses, the single view and a
-  transcript saved with Cmd+S, Multi-view, and the guards (pages that answer only to this computer, files only from the
+  transcript saved with Cmd+S (Ctrl+S on Windows), Multi-view, and the guards (pages that answer only to this computer, files only from the
   session, no requests from other sites);
 - one signed in for a demo, with the stand-in for the cloud slowed to 0.8 s a piece (`tests/slow_cloud.py`): an upload
   a restart cut off goes on when the app starts; Upload, Pause, Resume and done, checked byte for byte in the cloud; the

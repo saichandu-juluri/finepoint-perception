@@ -85,7 +85,7 @@ def now() -> str:
 def write_json(path: Path, data: dict):
     tmp = path.with_name(path.name + ".part")
     tmp.write_text(json.dumps(data, indent=1))
-    os.replace(tmp, path)
+    record.replace(tmp, path)
 
 
 def read_json(path: Path):

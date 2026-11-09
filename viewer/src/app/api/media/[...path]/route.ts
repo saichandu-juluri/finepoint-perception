@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { resolveMedia, sessionRef } from "@/server/camrig";
+import { mediaPath, resolveMedia, sessionRef } from "@/server/camrig";
 import { HttpError, readAllowed } from "@/server/data";
 
 const TYPES: Record<string, string> = {
@@ -23,7 +23,7 @@ async function serve(req: Request, { params }: Ctx, head: boolean) {
   try {
     const [id, ...rest] = (await params).path, ref = await sessionRef(id);
     if (!ref) return new Response("No such session", { status: 404 });
-    abs = await resolveMedia(ref, "/" + rest.join("/"));
+    abs = await resolveMedia(ref, mediaPath(rest));
   } catch (e) {
     if (e instanceof HttpError) return new Response(e.message, { status: e.status });
     throw e;

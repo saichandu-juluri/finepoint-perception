@@ -33,9 +33,13 @@ export function checkPython(): void {
   }
 }
 
+// Python reads and writes text in UTF-8 only in its UTF-8 mode on Windows (else in the ANSI code page, such as cp1252),
+// and -I ignores PYTHONUTF8, so a -I run asks for it itself.
+export const PY_UTF8 = process.platform === "win32" ? ["-X", "utf8"] : [];
+
 function helper(tomls: string[]): Promise<{ steps: string[]; projects: Record<string, Project> }> {
   checkPython();
-  return new Promise((ok, no) => execFile(PY, ["-I", path.join(REPO, "viewer", "scripts", "camrig_info.py"), ...tomls], { timeout: 60_000, maxBuffer: 1 << 24 },
+  return new Promise((ok, no) => execFile(PY, [...PY_UTF8, "-I", path.join(REPO, "viewer", "scripts", "camrig_info.py"), ...tomls], { timeout: 60_000, maxBuffer: 1 << 24, windowsHide: true },
     (e, out, err) => (e ? no(new HttpError(500, `The project files could not be read: ${String(err || e.message).trim().slice(-400)}`)) : ok(JSON.parse(out)))));
 }
 
@@ -119,15 +123,42 @@ export async function allowedRoots(ref: SessionRef): Promise<string[]> {
   return [...new Set(real.filter((r): r is string => !!r))];
 }
 
+// The absolute path a media URL names by its names (lib/format.ts mediaUrl): /a/b.mp4; on Windows C:\a\b.mp4 from
+// C:/a/b.mp4, or \\server\share\b.mp4 from server/share/b.mp4.
+export function mediaPath(parts: string[]): string {
+  if (process.platform !== "win32") return "/" + parts.join("/");
+  return /^[A-Za-z]:$/.test(parts[0] ?? "") ? `${parts[0]}\\${parts.slice(1).join("\\")}` : `\\\\${parts.join("\\")}`;
+}
+
 // A file the session may serve, by its absolute path: hidden names are refused, and its real place must be inside one of
 // the allowed folders (links that lead elsewhere are refused too).
 export async function resolveMedia(ref: SessionRef, abs: string): Promise<string> {
+  if (process.platform === "win32") return resolveMediaWindows(ref, abs);
   const parts = abs.split("/").filter(Boolean);
   if (!path.isAbsolute(abs) || parts.some(p => p.startsWith(".") || p.includes("\0") || p.includes("\\"))) throw new HttpError(400, "Bad path");
   const real = await fsp.realpath(abs).catch(() => null);
   if (!real) throw new HttpError(404, "Not found");
   if (!(await allowedRoots(ref)).some(r => real === r || real.startsWith(r + path.sep))) throw new HttpError(403, "This file is outside the session and its video folders.");
   return real;
+}
+
+// Windows: C:\… or \\server\share\…. No name may be hidden, or hold ":" (but the drive) or "/". The path must lie in an
+// allowed folder by its names before the disk is asked at all: opening \\host\share\… would send the person's Windows
+// sign-in to that host. Paths are compared without case, as Windows compares them.
+async function resolveMediaWindows(ref: SessionRef, abs: string): Promise<string> {
+  const parts = abs.split("\\").filter(Boolean), names = /^[A-Za-z]:$/.test(parts[0] ?? "") ? parts.slice(1) : parts;
+  if (!path.win32.isAbsolute(abs) || names.some(p => p.startsWith(".") || /[\0:/]/.test(p))) throw new HttpError(400, "Bad path");
+  const inside = (file: string, roots: string[]) => roots.some(r => {
+    const f = file.toLowerCase(), d = r.toLowerCase();
+    return f === d || f.startsWith(d.endsWith("\\") ? d : d + "\\");
+  });
+  const p = await project(ref).catch(() => null), real = await allowedRoots(ref);
+  const named = [ref.dir, ...(p?.ok ? p.cameras.flatMap(c => [c.folder, ...Object.values(c.exports)]) : []), ...real];
+  if (!inside(abs, named)) throw new HttpError(403, "This file is outside the session and its video folders.");
+  const file = await fsp.realpath(abs).catch(() => null);
+  if (!file) throw new HttpError(404, "Not found");
+  if (!inside(file, real)) throw new HttpError(403, "This file is outside the session and its video folders.");
+  return file;
 }
 
 // cameras.json, as the cameras step wrote it.

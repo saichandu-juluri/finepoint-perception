@@ -1,4 +1,4 @@
-# FinePoint Perception: one install for an Apple Silicon Mac (tested) and Windows (not run yet).
+# FinePoint Perception: one install for an Apple Silicon Mac and a Windows 10 or 11 x64 PC.
 # Python packages come from PyPI; conda-forge gives only Python, ffmpeg and node. Every version is pinned.
 [workspace]
 name = "finepoint-perception"
@@ -32,6 +32,10 @@ demo = "python cloud/demo.py"
 viewer = { cmd = "npm start", cwd = "viewer" }
 viewer-build = { cmd = "npm ci && npm run build", cwd = "viewer" }
 
+# Windows: Python reads and writes text, and prints to a pipe, in UTF-8 as on the Mac, not in the ANSI code page (cp1252)
+[feature.core.target.win-64.activation.env]
+PYTHONUTF8 = "1"
+
 # cloud: the server, its local stand-in and their tests; boto3 only for the real S3 calls (docs/UPLOAD.md)
 [feature.cloud.dependencies]
 python = "==3.13.18"
@@ -42,6 +46,9 @@ boto3 = "==1.43.126"
 [feature.cloud.tasks]
 cloud-dev = "python cloud/dev_server.py"
 test-cloud = "python cloud/test_cloud.py"
+
+[feature.cloud.target.win-64.activation.env]
+PYTHONUTF8 = "1"
 
 [environments]
 core = { features = ["base", "core"], no-default-feature = true }

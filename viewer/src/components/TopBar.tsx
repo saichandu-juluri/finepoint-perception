@@ -2,6 +2,7 @@
 // The app header: brand, breadcrumb, the Library / Single view / Multi-view tabs and the keyboard shortcuts sheet.
 import { useEffect, useRef, useState } from "react";
 import { Icon, Logo } from "./Icon";
+import { useKey } from "./keys";
 import { NavLink, isTyping } from "./nav";
 
 export type Crumb = { label: string; href?: string; mono?: boolean };
@@ -12,6 +13,7 @@ export const LAST_VIDEO_KEY = "camrig:last-video";
 export function TopBar({ crumbs, tab, singleHref, multiHref }: { crumbs: Crumb[]; tab: Tab; singleHref: string | null; multiHref: string | null }) {
   const [single, setSingle] = useState(singleHref);
   const keys = useRef<HTMLDialogElement>(null);
+  const key = useKey();
 
   useEffect(() => {
     try {
@@ -70,28 +72,28 @@ export function TopBar({ crumbs, tab, singleHref, multiHref }: { crumbs: Crumb[]
               <dl>
                 <dt><kbd>Space</kbd> <kbd>K</kbd></dt><dd>Play or pause</dd>
                 <dt><kbd>J</kbd> <kbd>L</kbd></dt><dd>Back or forward 5 s</dd>
-                <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>One frame (with <kbd>⇧</kbd>: 1 s)</dd>
+                <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>One frame (with <kbd>{key("shift")}</kbd>: 1 s)</dd>
                 <dt><kbd>N</kbd></dt><dd>New cue at the playhead</dd>
                 <dt><kbd>Esc</kbd></dt><dd>Stop editing the cue</dd>
                 <dt><kbd>C</kbd></dt><dd>Captions on or off</dd>
                 <dt><kbd>/</kbd></dt><dd>Search the transcript</dd>
-                <dt><kbd>⌘S</kbd></dt><dd>Save the .srt and the .txt</dd>
-                <dt><kbd>⌘Z</kbd> <kbd>⇧⌘Z</kbd></dt><dd>Undo, redo</dd>
+                <dt><kbd>{key("cmd+S")}</kbd></dt><dd>Save the .srt and the .txt</dd>
+                <dt><kbd>{key("cmd+Z")}</kbd> <kbd>{key("shift+cmd+Z")}</kbd></dt><dd>Undo, redo</dd>
               </dl>
               <h3>While typing in a cue</h3>
               <dl>
-                <dt><kbd>Return</kbd></dt><dd>Keep the text, open the next cue</dd>
-                <dt><kbd>⇧Return</kbd></dt><dd>New line</dd>
+                <dt><kbd>{key("return")}</kbd></dt><dd>Keep the text, open the next cue</dd>
+                <dt><kbd>{key("shift+return")}</kbd></dt><dd>New line</dd>
                 <dt><kbd>Esc</kbd></dt><dd>Undo the typing and stop editing</dd>
-                <dt><kbd>⌥K</kbd> <kbd>⌥J</kbd> <kbd>⌥L</kbd></dt><dd>Play or pause, back, forward</dd>
+                <dt><kbd>{key("alt+K")}</kbd> <kbd>{key("alt+J")}</kbd> <kbd>{key("alt+L")}</kbd></dt><dd>Play or pause, back, forward</dd>
               </dl>
             </section>
             <section>
               <h3>Multi-view</h3>
               <dl>
                 <dt><kbd>Space</kbd></dt><dd>Play or pause all cameras</dd>
-                <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>One step (with <kbd>⇧</kbd>: 1 s)</dd>
-                <dt><kbd>Return</kbd></dt><dd>Go to the time typed in the clock</dd>
+                <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>One step (with <kbd>{key("shift")}</kbd>: 1 s)</dd>
+                <dt><kbd>{key("return")}</kbd></dt><dd>Go to the time typed in the clock</dd>
               </dl>
               <h3>Anywhere</h3>
               <dl>

@@ -7,7 +7,8 @@
 //     (tests/slow_cloud.py): an upload a restart cut off, Upload with Pause and Resume, sync by hand, stopping uploaders;
 //   C, not signed in, with the stand-in for the cloud (cloud/dev_server.py): the sign-in form, an upload, Sign out.
 // It ends by checking that the clips and the real ~/.camrig are unchanged, and prints PASS or FAIL.
-// Env: E2E_TMP (scratch folder), E2E_SHOTS (folder for screenshots), CHROME (the Chrome program).
+// Env: E2E_TMP (scratch folder), E2E_SHOTS (folder for screenshots), CHROME (the Chrome program; on Windows the default
+// is Chrome, else Edge).
 import { spawn, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -15,11 +16,18 @@ import http from "node:http";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseSrt } from "../src/lib/srt.ts";
 
-const ROOT = path.resolve(new URL("..", import.meta.url).pathname), REPO = path.dirname(ROOT);
-const PY = path.join(REPO, ".pixi", "envs", "core", "bin", "python"), BIN = path.dirname(PY);
-const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const WIN = process.platform === "win32";
+const ROOT = fileURLToPath(new URL("..", import.meta.url)).replace(/[\\/]$/, ""), REPO = path.dirname(ROOT), ENV = path.join(REPO, ".pixi", "envs", "core");
+// The core environment's Python, and the folder of its ffmpeg: on Windows python.exe at its top, ffmpeg.exe in Library\bin
+const PY = WIN ? path.join(ENV, "python.exe") : path.join(ENV, "bin", "python"), BIN = WIN ? path.join(ENV, "Library", "bin") : path.dirname(PY);
+const PY_UTF8 = WIN ? ["-X", "utf8"] : [];           // -I ignores PYTHONUTF8 (camrig.ts PY_UTF8)
+const NEXT = path.join(ROOT, "node_modules", "next", "dist", "bin", "next");
+const programs = [process.env.PROGRAMFILES, process.env["PROGRAMFILES(X86)"], process.env.LOCALAPPDATA].filter(Boolean);
+const CHROME = process.env.CHROME ?? (!WIN ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  : [...programs.map(p => path.join(p, "Google", "Chrome", "Application", "chrome.exe")), ...programs.map(p => path.join(p, "Microsoft", "Edge", "Application", "msedge.exe"))].find(f => fs.existsSync(f)));
 const SHOTS = process.env.E2E_SHOTS ? path.resolve(process.env.E2E_SHOTS) : null;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 let failed = 0;
@@ -33,16 +41,19 @@ const scratch = fs.mkdtempSync(path.join(process.env.E2E_TMP || os.tmpdir(), "fp
 const HOME = path.join(scratch, "home"), SAFE = path.join(scratch, "safe"), TMP = path.join(scratch, "tmp"), REAL_CAMRIG = path.join(os.homedir(), ".camrig");
 for (const d of [HOME, SAFE, TMP]) fs.mkdirSync(d);
 // Every program started here gets a temporary home folder, a test password safe and the scratch folder for its
-// temporary files: never the real ~/.camrig or password safe. No cloud unless a server is given one.
-const sandbox = { ...process.env, HOME, TMPDIR: TMP, PYTHON_KEYRING_BACKEND: "camrig.keyring_file.FileKeyring", CAMRIG_TEST_KEYRING_DIR: SAFE,
-  CAMRIG_CLOUD_URL: "", CAMRIG_CLOUD_KEY: "", PATH: `${BIN}:${process.env.PATH}` };
+// temporary files: never the real ~/.camrig or password safe (Windows: USERPROFILE, TEMP and TMP; Credential Manager).
+// No cloud unless a server is given one. Windows names PATH as it likes (Path): one key only, or the child gets either.
+const pathKey = Object.keys(process.env).find(k => k.toUpperCase() === "PATH") ?? "PATH";
+const sandbox = { ...process.env, HOME, TMPDIR: TMP, ...(WIN ? { USERPROFILE: HOME, TEMP: TMP, TMP } : {}),
+  PYTHON_KEYRING_BACKEND: "camrig.keyring_file.FileKeyring", CAMRIG_TEST_KEYRING_DIR: SAFE, CAMRIG_CLOUD_URL: "", CAMRIG_CLOUD_KEY: "",
+  [pathKey]: [...(WIN ? [ENV] : []), BIN, process.env[pathKey]].join(path.delimiter) };
 const realCamrig = () => (fs.existsSync(REAL_CAMRIG) ? fs.readdirSync(REAL_CAMRIG).map(f => `${f}:${fs.statSync(path.join(REAL_CAMRIG, f)).mtimeMs}`).join("|") : null);
 const realCamrigBefore = realCamrig();
 
 // A 3 s clip of a test picture, with a tone of `hz` or silent.
 const clip = (file, hz) => {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  const r = spawnSync(path.join(BIN, "ffmpeg"), ["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=320x240:rate=30:duration=3",
+  const r = spawnSync(path.join(BIN, WIN ? "ffmpeg.exe" : "ffmpeg"), ["-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=320x240:rate=30:duration=3",
     ...(hz ? ["-f", "lavfi", "-i", `sine=frequency=${hz}:duration=3`, "-shortest", "-c:a", "aac"] : []), "-c:v", "libx264", "-pix_fmt", "yuv420p", file]);
   if (r.status !== 0) throw new Error(`ffmpeg: ${r.stderr}`);
 };
@@ -54,15 +65,15 @@ const listing = () => ["camA", "camB"].map(c => fs.readdirSync(path.join(CLIPS, 
 const clipsBefore = listing();
 const json = f => JSON.parse(fs.readFileSync(f, "utf8"));
 const sha256 = f => crypto.createHash("sha256").update(fs.readFileSync(f)).digest("hex");
-const enc = p => p.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+const enc = p => p.split(WIN ? /[\\/]/ : "/").filter(Boolean).map(encodeURIComponent).join("/");   // as lib/format.ts mediaUrl
 
 // ---------- servers and browser ----------
 const freePort = () => new Promise(r => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => r(p)); }); });
 const servers = [];
 async function startApp(sessions, env = {}) {
   const port = await freePort(), base = `http://127.0.0.1:${port}`;
-  const proc = spawn(path.join(ROOT, "node_modules/.bin/next"), ["start", "-H", "127.0.0.1", "-p", String(port)],
-    { cwd: ROOT, env: { ...sandbox, CAMRIG_SESSIONS: sessions, ...env }, stdio: ["ignore", "pipe", "pipe"] });
+  const proc = spawn(process.execPath, [NEXT, "start", "-H", "127.0.0.1", "-p", String(port)],
+    { cwd: ROOT, env: { ...sandbox, CAMRIG_SESSIONS: sessions, ...env }, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
   proc.log = "";
   proc.stdout.on("data", d => (proc.log += d)); proc.stderr.on("data", d => (proc.log += d));
   servers.push(proc);
@@ -265,8 +276,8 @@ async function localLane({ go, run, until, key, type, fillIn, shot, shown, text,
   await run(() => document.activeElement.select());
   await type("The second cue, edited (checked)");
   check(await until(() => document.querySelector(".status")?.dataset.state === "dirty"), "the edit shows as not saved yet");
-  await key("s", "KeyS", 83, 4);
-  check(await until(() => document.querySelector(".status")?.dataset.state === "saved"), "Cmd+S saves");
+  await key("s", "KeyS", 83, WIN ? 2 : 4);
+  check(await until(() => document.querySelector(".status")?.dataset.state === "saved"), `${WIN ? "Ctrl" : "Cmd"}+S saves`);
   const saved = parseSrt(fs.readFileSync(SRT, "utf8")).cues, history = path.join(path.dirname(SRT), ".transcript_history");
   check(saved.length === 3 && saved[1].text === "The second cue, edited (checked)" && fs.existsSync(SRT.replace(/\.srt$/, ".txt")) && fs.readdirSync(history).length >= 2,
     "it lands in the session's transcripts/camA/ with its .txt, and the version it replaced is kept in .transcript_history");
@@ -289,7 +300,7 @@ async function localLane({ go, run, until, key, type, fillIn, shot, shown, text,
 const CLOUD = path.join(scratch, "cloud");
 // The uploaders of the sessions under CLOUD, running or waiting, stopped as cloud/demo.py stops them on Ctrl+C.
 const stopUploaders = () => {
-  const r = spawnSync(PY, ["-I", "-c", "import sys; sys.path.insert(0, sys.argv[1]); import demo; print(*demo.uploaders(sys.argv[2:]))", path.join(REPO, "cloud"), CLOUD], { encoding: "utf8", env: sandbox });
+  const r = spawnSync(PY, [...PY_UTF8, "-I", "-c", "import sys; sys.path.insert(0, sys.argv[1]); import demo; print(*demo.uploaders(sys.argv[2:]))", path.join(REPO, "cloud"), CLOUD], { encoding: "utf8", env: sandbox });
   const pids = r.stdout.trim().split(/\s+/).filter(Boolean).map(Number).filter(p => p > 0 && p !== process.pid);
   for (const pid of pids) try { process.kill(pid, "SIGTERM"); } catch {}
   return pids;
@@ -306,7 +317,7 @@ async function cloudLane({ go, run, until, key, fillIn, shot, shown, text, count
   clip(path.join(BOOT, "a", "part01.mp4"), 440); clip(path.join(BOOT, "b", "part01.mp4"), 440);
   fs.writeFileSync(path.join(BOOT, "project.toml"), `name = "cut off"\n${board}${cam("a")}${cam("b")}`);
   fs.mkdirSync(path.join(BOOT, "upload"));
-  extra.sleeper = spawn("sleep", ["600"], { stdio: "ignore" });
+  extra.sleeper = spawn(process.execPath, ["-e", "setTimeout(() => {}, 600_000)"], { stdio: "ignore" });   // Windows has no sleep
   fs.writeFileSync(path.join(BOOT, "upload", "progress.json"), JSON.stringify({ schema: "camrig.upload.progress/1", pid: extra.sleeper.pid, state: "running", started: "2026-11-08T00:00:00Z",
     updated: "2026-11-08T00:00:01Z", bytes_total: 1, bytes_done: 0, rate_bps: 0, eta_s: null, error: "", files: [] }));
 

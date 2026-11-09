@@ -4,6 +4,7 @@ import { useState, type ReactNode, type RefObject } from "react";
 import { cueIndexAt, fmtClock } from "@/lib/srt";
 import { num } from "@/lib/format";
 import { Icon } from "../Icon";
+import { useKey } from "../keys";
 import { Spoken } from "../Spoken";
 import type { EdCue } from "./transcript";
 import { usePlayhead, type PlayheadStore, type VideoControls } from "./playhead";
@@ -19,6 +20,7 @@ export function Player({ src, videoRef, boxRef, store, ctl, cues, captions, setC
   const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
   const [failed, setFailed] = useState(false);
+  const key = useKey();
   const setVol = (v: number, m: boolean) => {
     setVolume(v); setMuted(m);
     const el = videoRef.current;
@@ -69,7 +71,7 @@ export function Player({ src, videoRef, boxRef, store, ctl, cues, captions, setC
         <span><kbd>J</kbd><kbd>L</kbd>Back or forward 5 s</span>
         <span><kbd>←</kbd><kbd>→</kbd>One frame</span>
         <span><kbd>N</kbd>New cue at the playhead</span>
-        <span><kbd>⌘S</kbd>Save</span>
+        <span><kbd>{key("cmd+S")}</kbd>Save</span>
       </div>
     </section>
   );

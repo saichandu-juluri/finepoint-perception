@@ -91,7 +91,8 @@ def session(t, cams, depth=False, manual=None, board=False):
     toml = 'name = "hand"\n[board]\nsquares = [5, 7]\nsquare_mm = 20.0\nmarker_mm = 14.0\n'
     if depth:
         exps = {b: depth_recording(t / "d", b, us) for b, us in (("rec1", 5_000_000), ("rec2", 15_000_000))}
-        toml += '[[camera]]\nname = "d"\nkind = "depth"\nfolder = "d"\n[camera.exports]\n' + "".join(f'{b} = "{e}"\n' for b, e in exps.items())
+        # a JSON string is a TOML basic string, so a Windows path's \ is escaped
+        toml += '[[camera]]\nname = "d"\nkind = "depth"\nfolder = "d"\n[camera.exports]\n' + "".join(f'{b} = {json.dumps(str(e))}\n' for b, e in exps.items())
     for name, sounds in cams.items():
         for i, s in enumerate(sounds):
             clip(t / name / f"part{i + 1:02d}.MOV", s)

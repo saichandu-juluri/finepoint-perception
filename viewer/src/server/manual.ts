@@ -6,7 +6,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { loadSession, project, type SessionRef } from "./camrig";
 import { movable } from "@/lib/session";
-import { HttpError, statOrNull } from "./data";
+import { HttpError, renameOver, statOrNull } from "./data";
 
 const SCHEMA = "camrig.decisions/1";
 const STALE_MS = 30_000; // as camrig/decisions.py: a lock this old was left by a writer that died
@@ -42,7 +42,7 @@ async function edit(ref: SessionRef, change: (manual: Record<string, unknown>) =
     if (!Object.keys(clock.user.manual).length) delete clock.user.manual;
     const tmp = `${file}.${crypto.randomUUID()}.part`;
     await fsp.writeFile(tmp, JSON.stringify(data, null, 1));
-    await fsp.rename(tmp, file);
+    await renameOver(tmp, file);
   });
 }
 

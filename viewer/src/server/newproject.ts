@@ -8,16 +8,18 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { projects, REPO, ROOTS } from "./camrig";
+import { projects, PY, PY_UTF8, REPO, ROOTS } from "./camrig";
 import { HttpError, statOrNull } from "./data";
 
 const VIDEO = new Set([".mov", ".mp4", ".m4v", ".avi", ".mkv"]); // camrig/project.py VIDEO_EXT
+const WINDOWS = process.platform === "win32";
 
-// From PATH, which pixi provides, else the core environment; `env` names the setting that points at another program.
+// From PATH, which pixi provides, else the core environment (on Windows ffmpeg.exe, in its Library\bin); `env` names the
+// setting that points at another program.
 function tool(name: string, env: string): string {
   const set = process.env[env];
-  const dirs = [...(process.env.PATH ?? "").split(path.delimiter), path.join(REPO, ".pixi", "envs", "core", "bin")];
-  for (const p of set ? [set] : dirs.filter(Boolean).map(d => path.join(d, name))) {
+  const dirs = [...(process.env.PATH ?? "").split(path.delimiter), path.join(REPO, ".pixi", "envs", "core", ...(WINDOWS ? ["Library", "bin"] : ["bin"]))];
+  for (const p of set ? [set] : dirs.filter(Boolean).map(d => path.join(d, WINDOWS ? `${name}.exe` : name))) {
     try { fs.accessSync(p, fs.constants.X_OK); return p; } catch {}
   }
   throw new HttpError(503, set ? `${env}=${set} is not a program that can run; fix the path or leave ${env} unset.`
@@ -25,10 +27,28 @@ function tool(name: string, env: string): string {
 }
 
 export type CameraFolder = { name: string; kind: "action" | "depth"; folder: string; files: number; seconds: number | null; bytes: number; first: string | null };
-export type Browse = { path: string; ok: boolean; error: string | null; parent: string | null; dirs: { name: string; path: string }[]; cameras: CameraFolder[] };
+// drives: on Windows, every drive to browse into, such as C: and a memory card's E:; elsewhere empty
+export type Browse = { path: string; ok: boolean; error: string | null; parent: string | null; dirs: { name: string; path: string }[]; drives: { name: string; path: string }[]; cameras: CameraFolder[] };
 
 const probe = (file: string) => new Promise<number | null>(ok => execFile(tool("ffprobe", "CAMRIG_FFPROBE"), ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file],
-  { timeout: 20_000 }, (e, out) => ok(e ? null : Number(out.trim()) || null)));
+  { timeout: 20_000, windowsHide: true }, (e, out) => ok(e ? null : Number(out.trim()) || null)));
+
+// Windows' list of drives (Python's os.listdrives), with their kind: no drive is read, so a card reader with no card
+// answers at once. Asked again after 3 s, so a memory card put in shows up.
+const KINDS: Record<number, string> = { 2: " (USB drive or memory card)", 4: " (network)", 5: " (CD or DVD)" };
+const memo = globalThis as typeof globalThis & { camrigDrives?: { at: number; list: Promise<Browse["drives"]> } };
+function drives(): Promise<Browse["drives"]> {
+  if (!WINDOWS) return Promise.resolve([]);
+  if (memo.camrigDrives && Date.now() - memo.camrigDrives.at < 3000) return memo.camrigDrives.list;
+  const code = "import ctypes, json, os; print(json.dumps([[d, ctypes.windll.kernel32.GetDriveTypeW(d)] for d in os.listdrives()]))";
+  const list = new Promise<Browse["drives"]>(ok => execFile(PY, [...PY_UTF8, "-I", "-c", code], { timeout: 10_000, windowsHide: true }, (e, out) => {
+    let found: [string, number][] = [];
+    try { found = e ? [] : JSON.parse(out); } catch {}
+    ok(found.filter(([, kind]) => kind > 1).map(([d, kind]) => ({ name: `${d.replace(/\\$/, "")}${KINDS[kind] ?? ""}`, path: d })));
+  }));
+  memo.camrigDrives = { at: Date.now(), list };
+  return list;
+}
 
 async function cameraFolder(dir: string): Promise<CameraFolder | null> {
   const files = (await fsp.readdir(dir, { withFileTypes: true }).catch(() => [])).filter(e => e.isFile() && !e.name.startsWith(".")).map(e => e.name).sort();
@@ -47,15 +67,15 @@ async function cameraFolder(dir: string): Promise<CameraFolder | null> {
 
 // The folder as typed: whether it can be used, its subfolders to browse into, and the cameras it would give.
 export async function browse(typed: string | null): Promise<Browse> {
-  const p = path.resolve((typed || os.homedir()).replace(/^~(?=$|\/)/, os.homedir()));
-  const st = await statOrNull(p);
-  if (!st?.isDirectory()) return { path: p, ok: false, error: st ? "This is a file, not a folder." : "There is no folder here.", parent: path.dirname(p), dirs: [], cameras: [] };
+  const p = path.resolve((typed || os.homedir()).replace(WINDOWS ? /^~(?=$|[\\/])/ : /^~(?=$|\/)/, os.homedir()));
+  const [st, drv] = await Promise.all([statOrNull(p).catch(() => null), drives()]);
+  if (!st?.isDirectory()) return { path: p, ok: false, error: st ? "This is a file, not a folder." : "There is no folder here.", parent: path.dirname(p), dirs: [], drives: drv, cameras: [] };
   const entries = await fsp.readdir(p, { withFileTypes: true }).catch(() => null);
-  if (!entries) return { path: p, ok: false, error: "This folder cannot be read.", parent: path.dirname(p), dirs: [], cameras: [] };
+  if (!entries) return { path: p, ok: false, error: "This folder cannot be read.", parent: path.dirname(p), dirs: [], drives: drv, cameras: [] };
   const dirs = entries.filter(e => e.isDirectory() && !e.name.startsWith(".")).map(e => ({ name: e.name, path: path.join(p, e.name) })).sort((a, b) => a.name.localeCompare(b.name));
   const cameras = (await Promise.all(dirs.map(d => cameraFolder(d.path)))).filter((c): c is CameraFolder => !!c);
   return {
-    path: p, parent: p === path.dirname(p) ? null : path.dirname(p), dirs, cameras,
+    path: p, parent: p === path.dirname(p) ? null : path.dirname(p), dirs, drives: drv, cameras,
     ok: cameras.length >= 2, error: cameras.length >= 2 ? null : `A session needs one subfolder per camera, at least two with videos or .bag recordings; this folder has ${cameras.length}.`,
   };
 }
@@ -65,7 +85,7 @@ export function picture(file: string): Promise<Buffer> {
   if (!VIDEO.has(path.extname(file).toLowerCase())) return Promise.reject(new HttpError(400, "Not a video"));
   const grab = (at: string) => new Promise<Buffer>((ok, no) => execFile(tool("ffmpeg", "CAMRIG_FFMPEG"),
     ["-nostdin", "-v", "error", "-ss", at, "-i", file, "-frames:v", "1", "-vf", "scale=480:-2", "-f", "image2pipe", "-c:v", "mjpeg", "pipe:1"],
-    { encoding: "buffer", timeout: 30_000, maxBuffer: 1 << 24 }, (e, out) => (e || !out.length ? no(new HttpError(422, "No picture could be taken from this video.")) : ok(out))));
+    { encoding: "buffer", timeout: 30_000, maxBuffer: 1 << 24, windowsHide: true }, (e, out) => (e || !out.length ? no(new HttpError(422, "No picture could be taken from this video.")) : ok(out))));
   return grab("1").catch(() => grab("0"));
 }
 

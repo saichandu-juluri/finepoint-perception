@@ -45,6 +45,8 @@ MIB = 1024**2
 TIMEOUT_S = 300
 SESSION = "lab_session"
 STARTED = []            # every uploader a check started: a failed check must not leave one waiting on a lock
+# Popen.kill(): SIGKILL, or on Windows TerminateProcess, which ends the process with code 1 and runs none of its code
+KILLED = 1 if os.name == "nt" else -signal.SIGKILL
 
 
 class Cloud:
@@ -420,8 +422,8 @@ def test_kill_and_resume(tmp: Path):
         a1 = key("originals/a/a1.MOV")
         p = start_uploader(project, cloud.url, "--part-mb", "5", "--retry-base", "0.05", "--parallel", "1")
         until("a1.MOV to be part way", lambda: 1 <= len(cloud.held(a1) or []) < 5)
-        p.send_signal(signal.SIGKILL)
-        finish(p, -signal.SIGKILL)
+        p.kill()
+        finish(p, KILLED)
         held = cloud.held(a1)
         assert 1 <= len(held) < 5, held
         cloud.delay = 0.0
@@ -432,7 +434,7 @@ def test_kill_and_resume(tmp: Path):
         assert sum(counts.values()) <= 5 + 1, f"only the missing parts, plus the one in flight at the kill: {counts}"
     finally:
         cloud.close()
-    print(f"PASS  SIGKILL part way through a file, then a restart sends only the missing parts (held {held}, PUTs {counts})")
+    print(f"PASS  a kill part way through a file, then a restart sends only the missing parts (held {held}, PUTs {counts})")
 
 
 def test_pause_and_changed_file(tmp: Path):
@@ -610,6 +612,8 @@ def test_moved_session(tmp: Path):
 def test_sigterm(tmp: Path):
     """the demo's Ctrl+C and a shutdown send SIGTERM: the cleanup runs at once, with a piece still in flight, and
     progress stays running so the viewer resumes it; a waiter stopped so leaves the runner's lock alone"""
+    if os.name == "nt":
+        return windows_stop(tmp)
     project = make_session(tmp)
     cloud = Cloud(tmp / "cloud", slow_first=("a1.MOV", 6.0))
     up = upload_dir(project)
@@ -642,6 +646,48 @@ def test_sigterm(tmp: Path):
     finally:
         cloud.close()
     print("PASS  SIGTERM: the lock is freed with a piece in flight, progress stays running (also in the last look), a stopped waiter leaves the runner's lock")
+
+
+def windows_stop(tmp: Path):
+    """Windows has no SIGTERM: Task Manager, a shutdown and the demo's Ctrl+C end the uploader with TerminateProcess,
+    and none of its cleanup runs. Windows frees lock.os and wait.os with the process, progress.json keeps the last state
+    it reported (running, so the viewer resumes it), and the lock file keeps a process id that blocks nothing. Unlike
+    SIGTERM, a stop in the last look leaves progress done: a change made in that second goes up with the next one."""
+    project = make_session(tmp)
+    cloud = Cloud(tmp / "cloud", slow_first=("a1.MOV", 6.0))
+    up = upload_dir(project)
+
+    def state():
+        try:
+            return json.loads((up / "progress.json").read_text())
+        except (OSError, ValueError):     # being replaced
+            return {}
+
+    try:
+        a1 = key("originals/a/a1.MOV")
+        p = start_uploader(project, cloud.url, "--part-mb", "5", "--retry-base", "0.05", "--parallel", "1")
+        until("a first piece of a1.MOV in flight", lambda: cloud.count(a1, 1) == 1)
+        waiter = start_uploader(project, cloud.url, "--part-mb", "5", "--retry-base", "0.05")
+        until("the second uploader to wait", lambda: "already runs" in Path(waiter.out.name).read_text())
+        waiter.terminate()
+        finish(waiter, KILLED)
+        assert (up / "lock").read_text() == str(p.pid), "a waiter stopped leaves the runner's process id"
+        until("progress.json to say running", lambda: state().get("state") == "running")
+        p.terminate()
+        finish(p, KILLED)
+        progress = state()
+        assert progress["state"] == "running" and progress["pid"] == p.pid, progress
+        assert (up / "lock").read_text() == str(p.pid), "the lock file keeps the stopped uploader's process id"
+        for name in ("lock.os", "wait.os"):
+            held = take_lock(up, block=False, name=name)
+            assert held, f"{name} is free after the stop"
+            release_lock(up, held)
+        upload(project, cloud.url)
+        check_arrived(project, cloud.url)
+    finally:
+        cloud.close()
+    print("PASS  Windows, a stop with TerminateProcess: lock.os and wait.os are free, progress stays running, the stale lock file "
+          "blocks nothing, and the next start sends the rest")
 
 
 def test_complete_timeout(tmp: Path):
@@ -751,8 +797,8 @@ def big_proof(project: Path):
             t0 = time.monotonic()
             p = start_uploader(project, cloud.url, "--retry-base", "1")
             until("the .bag to be part way", lambda: 2 <= len(cloud.held(bag_key) or []) < bag_parts, 3600)
-            p.send_signal(signal.SIGKILL)
-            finish(p, -signal.SIGKILL)
+            p.kill()
+            finish(p, KILLED)
             t_kill = time.monotonic()
             held = cloud.held(bag_key)
             print(f"killed after {t_kill - t0:.1f} s with {held} of {bag_parts} .bag parts held")

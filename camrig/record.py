@@ -10,6 +10,7 @@ Standard library only.
 import hashlib
 import json
 import os
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -59,12 +60,25 @@ class Check:
         return d
 
 
+def replace(src, dst):
+    """os.replace. Windows refuses to replace a file that another process has open, and Python opens every file so: the
+    uploader reading a session's check.json, clock.json or decisions.json holds it for milliseconds. So on Windows it
+    is tried again, for up to 5 s."""
+    for wait in (0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.8, 1.2, 1.2, 1.2, None):
+        try:
+            return os.replace(src, dst)
+        except PermissionError:
+            if os.name != "nt" or wait is None:
+                raise
+            time.sleep(wait)
+
+
 def write(folder: Path, check: Check):
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
     tmp = folder / "check.json.part"
     tmp.write_text(json.dumps(check.to_json(), indent=1))
-    os.replace(tmp, folder / "check.json")
+    replace(tmp, folder / "check.json")
 
 
 def read(folder: Path) -> Check | None:

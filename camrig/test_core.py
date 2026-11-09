@@ -174,7 +174,7 @@ def test_code_lists():
                 names = [a.name for a in node.names] if isinstance(node, ast.Import) else \
                     [node.module] + [f"{node.module}.{a.name}" for a in node.names] if isinstance(node, ast.ImportFrom) and node.module and not node.level else []
                 todo += [q for q in map(local, names) if q and q not in seen]
-        own = {str(p.relative_to(ROOT)) for p in seen} - {str(start.relative_to(ROOT))}
+        own = {p.relative_to(ROOT).as_posix() for p in seen} - {start.relative_to(ROOT).as_posix()}   # run.py's / also on Windows
         own = {f for f in own if not f.startswith("camrig/") or f.startswith("camrig/pipeline/") or f in ("camrig/clock.py", "camrig/board.py")}
         if own - set(code):
             missing[step] = sorted(own - set(code))

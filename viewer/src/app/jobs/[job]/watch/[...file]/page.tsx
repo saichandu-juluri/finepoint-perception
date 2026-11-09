@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { SingleView } from "@/components/single/SingleView";
-import { firstParam, fromParam, jobHref, mediaUrl, numParam, watchHref } from "@/lib/format";
+import { fileName, firstParam, fromParam, jobHref, mediaUrl, numParam, watchHref } from "@/lib/format";
 import { fmtClock } from "@/lib/srt";
 import { findPart, loadSession, requireSession } from "@/server/camrig";
 import { readTranscript } from "@/server/data";
@@ -29,7 +29,7 @@ async function Watch({ params, searchParams }: Pick<PageProps<"/jobs/[job]/watch
   const ref3 = `${job}/${cam}/${key}`;
   const [transcript, s] = await Promise.all([hit.sound && !depth ? readTranscript(ref3) : null, loadSession(ref)]);
   const part = s?.cameras.find(c => c.key === cam)?.parts.find(p => p.file === hit.file) ?? null;
-  const index = hit.parts.indexOf(key), name = abs.split("/").pop()!;
+  const index = hit.parts.indexOf(key), name = fileName(abs);
   const link = (i: number) => (i >= 0 && i < hit.parts.length ? { href: watchHref(job, cam, hit.parts[i], "", depth), label: `${cam} · ${hit.parts[i]}` } : null);
   const c = numParam(q.c), t = numParam(q.t);
   const srtName = name.replace(/\.[^.]+$/, ".srt");

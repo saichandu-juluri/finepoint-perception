@@ -8,6 +8,16 @@
   `FPP_APPS_DIR`), which runs `start-finepoint-perception.command` in the background with its output in
   `~/Library/Logs/FinePoint Perception.log`. Where pixi is missing it installs pixi 0.83.0, the version that made
   `pixi.lock`: change both together.
+- `install.ps1`: the same on Windows, which the README's PowerShell line downloads and runs. It clones the app into
+  `%USERPROFILE%\finepoint-perception`, or pulls there, with git from conda-forge (`pixi exec`), so a PC needs no git.
+  Run as a file (`powershell -ExecutionPolicy Bypass -File install.ps1`) it installs its own folder as it is. Where pixi
+  is missing it unpacks the pixi 0.83.0 release into `%USERPROFILE%\.pixi\bin` (not on PATH), checked against the
+  SHA-256 in the script: change version and checksum together, with `pixi.lock`. It stops every process that runs from
+  the app's folder (the app, an uploader, a step: Windows replaces no file that is open), installs, builds, and makes
+  the FinePoint Perception shortcut in the Start menu and on the desktop (in `FPP_APPS_DIR` for tests). The shortcut runs
+  `start-finepoint-perception.pyw` with the environment's `pythonw.exe`, which opens no window: it runs
+  `start-finepoint-perception.bat` with no window either, its output in
+  `%LOCALAPPDATA%\FinePoint Perception\FinePoint Perception.log`, and shows a message if the app did not start.
 
 ## Environments
 
@@ -57,5 +67,8 @@ Ctrl+C stops both. No AWS.
 
 ## Windows
 
-`pixi.toml` also locks `win-64`, and `start-finepoint-perception.bat` starts the app there, but nothing has been tested
-on Windows yet. `docs/WINDOWS.md` is the brief for testing and fixing it there.
+`pixi.toml` also locks `win-64`, and sets `PYTHONUTF8=1` there, so Python reads and writes text in UTF-8 as on the Mac
+(a `python -I` run, which ignores it, gets `-X utf8`). The commands above work in PowerShell as they are, with pixi as
+`%USERPROFILE%\.pixi\bin\pixi.exe` where it is not on PATH; the end-to-end test takes Chrome, else Edge. Only
+`camrig/test_upload.py`'s keychain check is for the Mac alone. `docs/WINDOWS.md` says what was tested on Windows and what
+is still open.

@@ -19,6 +19,8 @@ import os
 import time
 from pathlib import Path
 
+from camrig.record import replace
+
 SCHEMA = "camrig.decisions/1"
 STALE_S = 30.0          # a lock this old was left by a writer that died: a write takes milliseconds
 
@@ -91,5 +93,5 @@ class Decisions:
                         disk.setdefault(step, {"auto": {}, "evidence": {}, "user": {}})[part] = value
             tmp = self.path.with_suffix(".json.part")
             tmp.write_text(json.dumps(disk, indent=1, sort_keys=True))
-            os.replace(tmp, self.path)
+            replace(tmp, self.path)
         self.data, self.base = disk, copy.deepcopy(disk)

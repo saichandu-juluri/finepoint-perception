@@ -3,11 +3,16 @@
 // at a time on this server. Each step's state comes from its work/<step>/check.json: the runner deletes it as the step
 // starts and writes it as the step ends, and writes log.txt meanwhile. When the run ends, the session's uploader is
 // started again, so what the run changed goes up.
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fsp from "node:fs/promises";
 import { type Item, PY, REPO, checkPython, project, readCheck, steps, work, type SessionRef } from "./camrig";
 import { HttpError, statOrNull } from "./data";
 import { restartUpload } from "./upload";
+
+// Windows has no process groups to signal, and no Ctrl-C for a process without a console of its own: taskkill /T /F ends
+// the runner and every process under it at once. A step stopped so leaves no check.json, so the next run starts it again.
+const WINDOWS = process.platform === "win32";
+const killTree = (pid: number) => spawnSync("taskkill", ["/T", "/F", "/PID", String(pid)], { stdio: "ignore", windowsHide: true });
 
 type Job = { session: string; only: string | null; started: number; ended: number | null; status: "running" | "done" | "failed" | "cancelled";
   error: string | null; output: string; skipped: string[]; abort: AbortController };
@@ -24,7 +29,10 @@ const state = globalThis as typeof globalThis & { camrigRun?: Job; camrigBusy?: 
 if (!state.camrigExitHook) {
   state.camrigExitHook = true;
   // SIGTERM, not SIGKILL: the runner then stops its step, which runs in a process group of its own
-  process.once("exit", () => { if (state.camrigPid) try { process.kill(-state.camrigPid, "SIGTERM"); } catch {} });
+  process.once("exit", () => {
+    if (state.camrigPid && WINDOWS) killTree(state.camrigPid);
+    else if (state.camrigPid) try { process.kill(-state.camrigPid, "SIGTERM"); } catch {}
+  });
 }
 
 // One job at a time on this server: the Mac runs one well. The lock is taken as exclusive() is called (before its first
@@ -45,13 +53,18 @@ class ToolError extends Error {
 
 // One tool in its own process group, so a cancel, a timeout or the server's exit also stops what it started (the runner
 // starts a step). A cancel or a timeout sends Ctrl-C first, so a Python step can tidy up its temporary files, and kills after 3 s.
+// On Windows the tool gets a console of its own with no window, which its steps and their ffmpeg share, so none of them
+// opens a window; a cancel ends the tree at once (killTree).
 function run(name: string, cmd: string, args: string[], o: { signal: AbortSignal; timeoutMs: number; env?: NodeJS.ProcessEnv; cwd?: string; onData?: (text: string) => void }): Promise<void> {
   return new Promise((resolve, reject) => {
     if (o.signal.aborted) return reject(new ToolError(name, "was cancelled", ""));
-    const child = spawn(cmd, args, { detached: true, stdio: ["ignore", "pipe", "pipe"], env: o.env, cwd: o.cwd });
+    const child = spawn(cmd, args, { detached: !WINDOWS, windowsHide: true, stdio: ["ignore", "pipe", "pipe"], env: o.env, cwd: o.cwd });
     state.camrigPid = child.pid;
     let tail = "", why = "", done = false, kill: NodeJS.Timeout | undefined;
-    const group = (sig: NodeJS.Signals) => { try { process.kill(-child.pid!, sig); } catch {} };
+    const group = (sig: NodeJS.Signals) => {
+      if (WINDOWS) { if (child.pid) killTree(child.pid); return; }
+      try { process.kill(-child.pid!, sig); } catch {}
+    };
     const stop = (reason: string) => { if (why) return; why = reason; group("SIGINT"); kill = setTimeout(() => group("SIGKILL"), 3000); };
     const onAbort = () => stop("was cancelled");
     const timer = setTimeout(() => stop(`took longer than ${o.timeoutMs / 60_000} min`), o.timeoutMs);

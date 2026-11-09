@@ -21,9 +21,14 @@ export function waitText(s: number): string {
   return r % 60 ? `${m} min ${r % 60} s` : `${m} min`;
 }
 
-const enc = (rel: string) => rel.split("/").filter(Boolean).map(encodeURIComponent).join("/");
-// A file of a session by its absolute path (the server checks it lies in the session or its video folders).
-export const mediaUrl = (job: string, abs: string) => `/api/media/${encodeURIComponent(job)}/${enc(abs)}`;
+// A Windows path: C:\…, or \\server\share\…. Its names split at \ and /, any other path's at / only.
+export const windowsPath = (p: string) => /^([A-Za-z]:[\\/]|\\\\)/.test(p);
+export const pathParts = (p: string) => p.split(windowsPath(p) ? /[\\/]/ : "/").filter(Boolean);
+// The last name in a path: the file's, or the folder's.
+export const fileName = (p: string) => pathParts(p).pop() ?? p;
+// A file of a session by its absolute path (the server checks it lies in the session or its video folders). A Windows
+// path goes by its names too: C:\a\b.mp4 as C%3A/a/b.mp4, \\server\share\b.mp4 as server/share/b.mp4.
+export const mediaUrl = (job: string, abs: string) => `/api/media/${encodeURIComponent(job)}/${pathParts(abs).map(encodeURIComponent).join("/")}`;
 // One video of a session in the single view: its camera and part, with "depth" for a depth camera's depth video.
 export const watchHref = (job: string, cam: string, part: string, query = "", depth = false) =>
   `/jobs/${encodeURIComponent(job)}/watch/${encodeURIComponent(cam)}/${encodeURIComponent(part)}${depth ? "/depth" : ""}${query ? `?${query}` : ""}`;
