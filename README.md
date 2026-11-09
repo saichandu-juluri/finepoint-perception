@@ -1,6 +1,6 @@
 # FinePoint Perception
 
-Send a recording session from your Mac or Windows PC to your lab's cloud, and watch all its cameras side by side.
+Send a recording session from your Mac or Windows PC to FinePoint Cloud, and watch all its cameras side by side.
 
 ## Watch how it works (1.5 minutes)
 

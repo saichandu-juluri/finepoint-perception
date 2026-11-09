@@ -91,12 +91,12 @@ export function UploadPanel({ job, initial, cloudUrl }: { job: string; initial: 
       <div className="sec-head">
         <div>
           <h2 id="h-upload">Upload to the cloud</h2>
-          <p>Sends this session&rsquo;s recordings and results, unchanged, to the lab&rsquo;s private cloud storage.</p>
+          <p>Sends this session&rsquo;s recordings and results, unchanged, to FinePoint Cloud.</p>
         </div>
       </div>
       {!st.cloud ? (
         <form className="cloud-form" data-upload-no-cloud data-cloud-signin onSubmit={e => { e.preventDefault(); sign("POST"); }}>
-          <p className="note">Sign in to the lab&rsquo;s cloud to upload from this computer.</p>
+          <p className="note">Sign in to FinePoint Cloud to upload from this computer.</p>
           <div className="cloud-fields">
             {field("url", "Server address", "url", "url", "https://…")}
             {field("email", "Email", "email", "username")}
