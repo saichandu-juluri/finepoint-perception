@@ -35,6 +35,7 @@
   section { break-before: page; }
   section.keep { break-before: auto; margin-top: 16pt; }
   .avoid, figure, .steps li, table, .note, .cmd { break-inside: avoid; }
+  table.long { break-inside: auto; }
   h2, h3 { break-after: avoid; }
 
   ol.steps { list-style: none; padding: 0; margin: 0 0 10pt; counter-reset: s; }
@@ -90,8 +91,8 @@
       </svg>
     </div>
     <h1>FinePoint Perception</h1>
-    <div class="sub">Set up on your Mac</div>
-    <p class="what">The app sends a recording session from your Mac to your lab's cloud, and shows all its cameras side by side.</p>
+    <div class="sub">Set up on your Mac or Windows PC</div>
+    <p class="what">The app sends a recording session from your computer to your lab's cloud, and shows all its cameras side by side.</p>
   </div>
   <div>
     <p><b>In this guide</b></p>
@@ -110,7 +111,8 @@
 
 <section style="break-before:auto">
   <h2><span class="n">1</span>Before you start</h2>
-  <p class="lead">Check these five things first. Each check takes a minute. The links open Apple's own help pages.</p>
+  <p class="lead">Check these things first. Each check takes a minute. The links open Apple's and Microsoft's own help pages.</p>
+  <h3>On a Mac</h3>
   <table>
     <tr><th>What you need</th><th>How to check</th></tr>
     <tr><td>A Mac with an Apple chip (M1 or newer)</td>
@@ -125,24 +127,45 @@
         <a href="https://support.apple.com/en-us/102624">Free up storage space on Mac</a></td></tr>
     <tr><td>Internet</td>
         <td>Open any web page in Safari. If it loads, you are ready.</td></tr>
+  </table>
+
+  <h3>On a Windows PC</h3>
+  <table>
+    <tr><th>What you need</th><th>How to check</th></tr>
+    <tr><td>Windows 10 or 11, 64-bit</td>
+        <td>Right-click <b>Start</b>, then click <b>Settings</b>, <b>System</b> and <b>About</b>. Under <b>Device specifications</b>, <b>System type</b> must say 64-bit operating system, x64-based processor. Under <b>Windows specifications</b>, <b>Edition</b> says Windows 10 or Windows 11.
+        <a href="https://support.microsoft.com/en-us/windows/which-version-of-windows-operating-system-am-i-running-628bec99-476a-2c13-5296-9dd081cdd808">Find information about your Windows device</a></td></tr>
+    <tr><td>About 3 GB of free space</td>
+        <td>Open <b>Settings</b>, then <b>System</b>, then <b>Storage</b>. The bar for the drive the system is on, usually <b>C:</b>, shows how much is free.
+        <a href="https://support.microsoft.com/en-us/windows/experience/storage-filemanagement/free-up-drive-space-in-windows">Free up drive space in Windows</a></td></tr>
+    <tr><td>Internet</td>
+        <td>Open any web page in Microsoft Edge. If it loads, you are ready.</td></tr>
+  </table>
+
+  <h3>On both</h3>
+  <table>
+    <tr><th>What you need</th><th>How to check</th></tr>
     <tr><td>From the FinePoint team</td>
         <td>Two things: the <b>server address</b> (it starts with <span class="mono">https://</span>), and an <b>email with a set-password link</b>. Ask the FinePoint team if you have not got them.</td></tr>
   </table>
 
+  <div class="avoid">
   <h3>The installer takes care of these</h3>
   <p>You do not need to install anything else by hand. The links are here only if you want to read more.</p>
   <table>
     <tr><th>Tool</th><th>What it is</th></tr>
-    <tr><td>Command line developer tools</td><td>Apple's free tools. The Mac offers them during the install. <a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a></td></tr>
-    <tr><td>Git</td><td>Comes with the developer tools. <a href="https://git-scm.com/install/mac">Git for macOS</a></td></tr>
+    <tr><td>Command line developer tools (Mac)</td><td>Apple's free tools. The Mac offers them during the install. <a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a></td></tr>
+    <tr><td>Git</td><td>On a Mac it comes with the developer tools: <a href="https://git-scm.com/install/mac">Git for macOS</a>. On Windows the installer brings its own; you do not need <a href="https://git-scm.com/install/windows">Git for Windows</a>.</td></tr>
     <tr><td>pixi</td><td>Sets up what the app needs to run. The installer adds it. <a href="https://pixi.prefix.dev/latest/installation/">pixi installation</a></td></tr>
-    <tr><td>A web browser</td><td>The app opens in your browser. Safari is on every Mac. <a href="https://support.apple.com/guide/safari/welcome/mac">Safari guide</a>. Chrome also works: <a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download Chrome</a></td></tr>
+    <tr><td>A web browser</td><td>The app opens in your browser. Safari is on every Mac, and Microsoft Edge on every Windows PC. <a href="https://support.apple.com/guide/safari/welcome/mac">Safari guide</a>. Chrome also works: <a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download Chrome</a></td></tr>
   </table>
+  </div>
 </section>
 
 <section>
   <h2><span class="n">2</span>Install the app</h2>
   <p class="lead">You do this once. It takes a few minutes.</p>
+  <h3>On a Mac</h3>
   <ol class="steps">
     <li><b>Open Terminal.</b> In Finder, open <b>Applications</b>, then <b>Utilities</b>, then double-click <b>Terminal</b>.
       Or press Command and Space together, type <b>Terminal</b> and press Return.
@@ -162,14 +185,40 @@
 </section>
 
 <section>
-  <h2><span class="n">3</span>Open the app next time</h2>
-  <p class="lead">You do not need Terminal again.</p>
+  <h2><span class="n">2</span>Install the app <span style="font-weight:500;color:var(--muted);font-size:13pt">continued</span></h2>
+  <h3>On a Windows PC</h3>
   <ol class="steps">
-    <li>Click <b>FinePoint Perception</b> in Launchpad (called Apps on newer Macs), or in the <b>Applications</b> folder of your home folder.
-      <figure class="icon">
-        <img src="images/10-app-icon.png" alt="The FinePoint Perception app icon">
-        <figcaption>The app's icon.</figcaption>
+    <li><b>Open PowerShell.</b> Click <b>Start</b>, type <b>PowerShell</b>, and click <b>Windows PowerShell</b>.
+      <a href="https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell">Starting Windows PowerShell</a></li>
+    <li><b>Paste this line into PowerShell and press Enter.</b> To paste, right-click in the window, or press Ctrl and V together. It is one command, even though it wraps onto two lines.
+<div class="cmd">powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"</div>
+      If pasting from this PDF does not work, copy the line from the <a href="https://github.com/saichandu-juluri/finepoint-perception">project page</a> instead (it is under <b>Install on Windows</b>).
+      <figure>
+        <img src="images/11-powershell.png" alt="PowerShell window with the install line typed in">
+        <figcaption>PowerShell with the line pasted in, just before pressing Enter.</figcaption>
       </figure>
+    </li>
+    <li><b>Wait.</b> Text scrolls by in PowerShell. The first time takes a few minutes.</li>
+    <li><b>The app opens in your browser.</b> You can leave PowerShell open or close it.</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="n">3</span>Open the app next time</h2>
+  <p class="lead">You do not need Terminal or PowerShell again.</p>
+  <ol class="steps">
+    <li>On a Mac, click <b>FinePoint Perception</b> in Launchpad (called Apps on newer Macs), or in the <b>Applications</b> folder of your home folder.
+      On Windows, click <b>FinePoint Perception</b> in the <b>Start</b> menu or on the desktop.
+      <div style="display:flex;gap:24pt;justify-content:center;align-items:flex-start">
+        <figure class="icon">
+          <img src="images/10-app-icon.png" alt="The FinePoint Perception app icon">
+          <figcaption>The app's icon on a Mac.</figcaption>
+        </figure>
+        <figure class="icon">
+          <img src="images/12-windows-shortcut.png" alt="The FinePoint Perception shortcut on Windows">
+          <figcaption>The shortcut on Windows.</figcaption>
+        </figure>
+      </div>
     </li>
     <li>The app opens in your browser on the <b>Library</b> page. It lists your sessions.
       <figure>
@@ -196,7 +245,7 @@
 
   <section class="keep">
   <h2><span class="n">5</span>Sign in the first time</h2>
-  <p class="lead">You sign in on a session's page, under <b>Upload to the cloud</b>, after you make your first project in part 6. You do this once per Mac.</p>
+  <p class="lead">You sign in on a session's page, under <b>Upload to the cloud</b>, after you make your first project in part 6. You do this once per computer.</p>
   <ol class="steps">
     <li>Type the <b>server address</b> from the FinePoint team, your <b>email</b> and your <b>password</b>. Click <span class="ui">Sign in</span>.
       <figure class="wide">
@@ -218,6 +267,7 @@
   <ol class="steps">
     <li>On the Library page, click <span class="ui">New project</span>.</li>
     <li>Go to the recording folder, the one with one folder per camera inside. Click a folder name to open it, or <span class="ui">Up</span> to go back.
+      On Windows, click a drive, such as <span class="ui">E:</span> for a USB drive or a memory card, to open it.
       If the Mac asks whether the app may open a folder or a drive, click <b>Allow</b>.
       (<a href="https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac">Allow an app to open folders</a>)</li>
     <li>Check the camera names. Leave the board numbers as they are.</li>
@@ -246,7 +296,7 @@
     </li>
   </ol>
   <div class="note">
-    <p><span class="ui">Pause</span> stops the upload, and <span class="ui">Resume</span> carries on where it stopped. You can close the browser at any time. After a restart of the Mac, click the app's icon and the upload carries on.</p>
+    <p><span class="ui">Pause</span> stops the upload, and <span class="ui">Resume</span> carries on where it stopped. You can close the browser at any time. After a restart of the computer, click the app's icon and the upload carries on.</p>
   </div>
 </section>
 
@@ -260,8 +310,11 @@
 
   <section class="keep avoid">
   <h2><span class="n">8</span>Update the app</h2>
-  <p>When the FinePoint team says there is a new version, open Terminal, paste this line and press Return. It works like the install, and then the app opens in your browser.</p>
+  <p>When the FinePoint team says there is a new version, update the app as below. It works like the install, and then the app opens in your browser. An upload carries on.</p>
+  <p><b>On a Mac</b>, open Terminal, paste this line and press Return.</p>
 <div class="cmd">git -C ~/finepoint-perception pull &amp;&amp; ~/finepoint-perception/install.command</div>
+  <p><b>On Windows</b>, open PowerShell, paste the install line again and press Enter.</p>
+<div class="cmd">powershell -ExecutionPolicy Bypass -c "irm -useb https://raw.githubusercontent.com/saichandu-juluri/finepoint-perception/main/install.ps1 | iex"</div>
   </section>
 </section>
 
@@ -292,7 +345,7 @@
 <section>
   <h2><span class="n">10</span>Links</h2>
   <p class="lead">Every link in this guide, in one place.</p>
-  <table>
+  <table class="long">
     <tr><th>Topic</th><th>Link</th></tr>
     <tr><td>The app's project page</td><td><a href="https://github.com/saichandu-juluri/finepoint-perception">FinePoint Perception on GitHub</a><span class="url">github.com/saichandu-juluri/finepoint-perception</span></td></tr>
     <tr><td>Does my Mac have an Apple chip?</td><td><a href="https://support.apple.com/en-us/116943">Mac computers with Apple silicon</a><span class="url">support.apple.com/en-us/116943</span></td></tr>
@@ -302,6 +355,10 @@
     <tr><td>Open Terminal</td><td><a href="https://support.apple.com/guide/terminal/open-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125/mac">Open or quit Terminal on Mac</a><span class="url">support.apple.com/guide/terminal/open-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125/mac</span></td></tr>
     <tr><td>Developer tools</td><td><a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a><span class="url">developer.apple.com/documentation/xcode/installing-the-command-line-tools/</span></td></tr>
     <tr><td>Git (optional, on its own)</td><td><a href="https://git-scm.com/install/mac">Git, install for macOS</a><span class="url">git-scm.com/install/mac</span></td></tr>
+    <tr><td>Which Windows do I have?</td><td><a href="https://support.microsoft.com/en-us/windows/which-version-of-windows-operating-system-am-i-running-628bec99-476a-2c13-5296-9dd081cdd808">Find information about your Windows device</a><span class="url">support.microsoft.com/en-us/windows/which-version-of-windows-operating-system-am-i-running-628bec99-476a-2c13-5296-9dd081cdd808</span></td></tr>
+    <tr><td>Free space on Windows</td><td><a href="https://support.microsoft.com/en-us/windows/experience/storage-filemanagement/free-up-drive-space-in-windows">Free up drive space in Windows</a><span class="url">support.microsoft.com/en-us/windows/experience/storage-filemanagement/free-up-drive-space-in-windows</span></td></tr>
+    <tr><td>Open PowerShell</td><td><a href="https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell">Starting Windows PowerShell</a><span class="url">learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell</span></td></tr>
+    <tr><td>Git for Windows (not needed)</td><td><a href="https://git-scm.com/install/windows">Git, install for Windows</a><span class="url">git-scm.com/install/windows</span></td></tr>
     <tr><td>pixi (the installer adds it)</td><td><a href="https://pixi.prefix.dev/latest/installation/">pixi installation</a><span class="url">pixi.prefix.dev/latest/installation/</span></td></tr>
     <tr><td>Safari (built in)</td><td><a href="https://support.apple.com/guide/safari/welcome/mac">Safari User Guide for Mac</a><span class="url">support.apple.com/guide/safari/welcome/mac</span></td></tr>
     <tr><td>Google Chrome (optional)</td><td><a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download and install Google Chrome</a><span class="url">support.google.com/chrome/answer/95346</span></td></tr>
