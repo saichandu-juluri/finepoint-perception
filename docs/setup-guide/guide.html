@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinePoint Perception Setup Guide</title>
+<style>
+  :root {
+    --bg: #F3F6F9; --surface: #FFFFFF; --surface-3: #EEF2F6; --line: #E2E8F0; --line-strong: #CBD5E1;
+    --text: #0F172A; --text-2: #334155; --muted: #526075;
+    --accent: #0F766E; --accent-strong: #115E59; --accent-ink: #0B5550; --accent-tint: #E8F4F2; --accent-line: #B5DCD5;
+    --warn-ink: #8A4B08; --warn-bg: #FEF5E6; --warn-line: #F5D9A6;
+    --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: letter; margin: 0.6in 0.65in 0.6in; }
+  html, body { margin: 0; background: #fff; color: var(--text); }
+  body { font: 400 10.5pt/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+  .sheet { max-width: 7.2in; margin: 0 auto; }
+  @media screen { body { background: var(--bg); padding: 24px 16px; } .sheet { background: #fff; padding: 0.6in; border-radius: 12px; } }
+
+  h1, h2, h3 { letter-spacing: -.01em; margin: 0; }
+  h2 { font-size: 18pt; font-weight: 700; margin: 0 0 4pt; color: var(--text); }
+  h2 .n { display: inline-block; min-width: 1.6em; height: 1.6em; line-height: 1.6em; text-align: center; border-radius: 8px;
+          background: var(--accent); color: #fff; font-size: 13pt; margin-right: 8pt; vertical-align: 3pt; }
+  h3 { font-size: 13.5pt; font-weight: 650; margin: 16pt 0 6pt; color: var(--accent-ink); }
+  p { margin: 0 0 8pt; }
+  .lead { color: var(--text-2); margin-bottom: 12pt; }
+  a { color: var(--accent-ink); text-decoration: underline; text-decoration-color: var(--accent-line); }
+  b { font-weight: 650; }
+  .ui { font-weight: 650; color: var(--accent-ink); }
+  code, .mono { font-family: var(--mono); font-size: 0.92em; }
+
+  section { break-before: page; }
+  section.keep { break-before: auto; margin-top: 16pt; }
+  .avoid, figure, .steps li, table, .note, .cmd { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+
+  ol.steps { list-style: none; padding: 0; margin: 0 0 10pt; counter-reset: s; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 8pt 30pt; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 20pt; height: 20pt; line-height: 20pt;
+    text-align: center; border-radius: 50%; background: var(--accent-tint); color: var(--accent-ink); font-weight: 700; font-size: 10pt;
+    border: 1px solid var(--accent-line); }
+
+  figure { margin: 6pt 0 10pt; }
+  figure.wide img { max-width: 90%; }
+  figure.mid img { max-width: 78%; }
+  figure.mid.up img { max-width: 70%; }
+  figure img { display: block; max-width: 100%; max-height: 3.9in; margin: 0 auto; object-fit: contain;
+    border: 1px solid var(--line-strong); border-radius: 8px; }
+  figure.small img { max-width: 70%; }
+  figure.icon img { max-width: 1.6in; border-radius: 14px; }
+  figcaption { font-size: 9.5pt; color: var(--muted); text-align: center; margin-top: 4pt; }
+
+  .cmd { background: #0F172A; color: #E2E8F0; border-radius: 8px; padding: 10pt 12pt; margin: 6pt 0 10pt;
+    font-family: var(--mono); font-size: 8.3pt; line-height: 1.6; white-space: pre-wrap; overflow-wrap: normal; }
+  ol.steps .cmd { margin-left: -30pt; }
+  .note { background: var(--accent-tint); border: 1px solid var(--accent-line); border-radius: 8px; padding: 8pt 12pt; margin: 8pt 0 12pt; }
+  .note.warn { background: var(--warn-bg); border-color: var(--warn-line); }
+  .note p:last-child { margin: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 6pt 0 12pt; }
+  th, td { text-align: left; vertical-align: top; padding: 6pt 8pt; border-bottom: 1px solid var(--line); }
+  th { background: var(--accent); color: #fff; font-weight: 600; }
+  tr { break-inside: avoid; }
+  td:first-child { font-weight: 600; width: 30%; }
+  .url { display: block; font-size: 8pt; color: var(--muted); overflow-wrap: anywhere; font-family: var(--mono); }
+
+  /* cover */
+  .cover { height: 9.6in; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+  .cover .band { background: var(--accent); color: #fff; border-radius: 16px; padding: 0.7in 0.55in; margin-top: 1.2in; }
+  .cover .mark { width: 56px; height: 56px; border-radius: 14px; background: rgba(255,255,255,.16); display: flex;
+    align-items: center; justify-content: center; margin-bottom: 26pt; }
+  .cover h1 { font-size: 34pt; font-weight: 750; line-height: 1.1; }
+  .cover .sub { font-size: 18pt; font-weight: 500; opacity: .92; margin-top: 8pt; }
+  .cover .what { font-size: 12.5pt; margin-top: 26pt; max-width: 5in; opacity: .95; }
+  .cover .foot { color: var(--muted); font-size: 11pt; display: flex; justify-content: space-between; }
+  .cover ul { margin: 18pt 0 0; padding-left: 16pt; color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<div class="cover">
+  <div class="band">
+    <div class="mark">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/>
+      </svg>
+    </div>
+    <h1>FinePoint Perception</h1>
+    <div class="sub">Set up on your Mac</div>
+    <p class="what">The app sends a recording session from your Mac to your lab's cloud, and shows all its cameras side by side.</p>
+  </div>
+  <div>
+    <p><b>In this guide</b></p>
+    <ul>
+      <li>What you need before you start</li>
+      <li>Install the app, then open it again later</li>
+      <li>Set your password and sign in</li>
+      <li>Upload a session</li>
+      <li>If something goes wrong, and how to update</li>
+      <li>For the FinePoint team: add a person</li>
+      <li>Links to every help page</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Setup guide</span><span>November 2026</span></div>
+</div>
+
+<section style="break-before:auto">
+  <h2><span class="n">1</span>Before you start</h2>
+  <p class="lead">Check these five things first. Each check takes a minute. The links open Apple's own help pages.</p>
+  <table>
+    <tr><th>What you need</th><th>How to check</th></tr>
+    <tr><td>A Mac with an Apple chip (M1 or newer)</td>
+        <td>Click the Apple menu, then <b>About This Mac</b>. A <b>Chip</b> line that says Apple M1, M2, M3 or newer is right. A <b>Processor</b> line that says Intel will not work.
+        <a href="https://support.apple.com/en-us/116943">Mac computers with Apple silicon</a></td></tr>
+    <tr><td>macOS 14 or newer</td>
+        <td>The same window shows the macOS name and number. Sonoma 14, Sequoia 15 and Tahoe 26 are all fine. If yours is older, update it.
+        <a href="https://support.apple.com/en-us/109033">Find out which macOS your Mac is using</a>,
+        <a href="https://support.apple.com/en-us/108382">Update macOS</a></td></tr>
+    <tr><td>About 3 GB of free space</td>
+        <td>Open <b>System Settings</b>, then <b>General</b>, then <b>Storage</b>. The bar shows how much is free.
+        <a href="https://support.apple.com/en-us/102624">Free up storage space on Mac</a></td></tr>
+    <tr><td>Internet</td>
+        <td>Open any web page in Safari. If it loads, you are ready.</td></tr>
+    <tr><td>From the FinePoint team</td>
+        <td>Two things: the <b>server address</b> (it starts with <span class="mono">https://</span>), and an <b>email with a set-password link</b>. Ask the FinePoint team if you have not got them.</td></tr>
+  </table>
+
+  <h3>The installer takes care of these</h3>
+  <p>You do not need to install anything else by hand. The links are here only if you want to read more.</p>
+  <table>
+    <tr><th>Tool</th><th>What it is</th></tr>
+    <tr><td>Command line developer tools</td><td>Apple's free tools. The Mac offers them during the install. <a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a></td></tr>
+    <tr><td>Git</td><td>Comes with the developer tools. <a href="https://git-scm.com/install/mac">Git for macOS</a></td></tr>
+    <tr><td>pixi</td><td>Sets up what the app needs to run. The installer adds it. <a href="https://pixi.prefix.dev/latest/installation/">pixi installation</a></td></tr>
+    <tr><td>A web browser</td><td>The app opens in your browser. Safari is on every Mac. <a href="https://support.apple.com/guide/safari/welcome/mac">Safari guide</a>. Chrome also works: <a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download Chrome</a></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">2</span>Install the app</h2>
+  <p class="lead">You do this once. It takes a few minutes.</p>
+  <ol class="steps">
+    <li><b>Open Terminal.</b> In Finder, open <b>Applications</b>, then <b>Utilities</b>, then double-click <b>Terminal</b>.
+      Or press Command and Space together, type <b>Terminal</b> and press Return.
+      <a href="https://support.apple.com/guide/terminal/open-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125/mac">Open or quit Terminal on Mac</a></li>
+    <li><b>Paste this line into Terminal and press Return.</b> It is one command, even though it wraps onto two lines.
+<div class="cmd">git clone https://github.com/saichandu-juluri/finepoint-perception.git ~/finepoint-perception &amp;&amp; ~/finepoint-perception/install.command</div>
+      If pasting from this PDF does not work, copy the line from the <a href="https://github.com/saichandu-juluri/finepoint-perception">project page</a> instead (it is under <b>Install</b>).
+      <figure>
+        <img src="images/00-terminal.png" alt="Terminal window with the install line typed in">
+        <figcaption>Terminal with the line pasted in, just before pressing Return.</figcaption>
+      </figure>
+    </li>
+    <li><b>If the Mac asks to install the command line developer tools, click Install.</b> When that is done, paste the line again and press Return.</li>
+    <li><b>Wait.</b> Text scrolls by in Terminal. Warnings are normal. The first time takes a few minutes.</li>
+    <li><b>The app opens in your browser.</b> You can leave Terminal open or close it.</li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="n">3</span>Open the app next time</h2>
+  <p class="lead">You do not need Terminal again.</p>
+  <ol class="steps">
+    <li>Click <b>FinePoint Perception</b> in Launchpad (called Apps on newer Macs), or in the <b>Applications</b> folder of your home folder.
+      <figure class="icon">
+        <img src="images/10-app-icon.png" alt="The FinePoint Perception app icon">
+        <figcaption>The app's icon.</figcaption>
+      </figure>
+    </li>
+    <li>The app opens in your browser on the <b>Library</b> page. It lists your sessions.
+      <figure>
+        <img src="images/01-library.png" alt="The Library page with one session and the New project button">
+        <figcaption>The Library. Each card is one session. <span class="ui">New project</span> adds one.</figcaption>
+      </figure>
+    </li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="n">4</span>Set your password</h2>
+  <p class="lead">The FinePoint team sends you an email with a set-password link.</p>
+  <ol class="steps">
+    <li>Open the link from the email. A page called <b>Set your password</b> opens.
+      <figure class="small">
+        <img src="images/07-set-password.png" alt="The Set your password page">
+        <figcaption>The set-password page shows your email.</figcaption>
+      </figure>
+    </li>
+    <li>Type a password of <b>12 characters or more</b>, twice, and save it.</li>
+  </ol>
+  <div class="note"><p>The link works once, and for 72 hours. If it has run out, ask the FinePoint team for a new link.</p></div>
+
+  <section class="keep">
+  <h2><span class="n">5</span>Sign in the first time</h2>
+  <p class="lead">You sign in on a session's page, under <b>Upload to the cloud</b>, after you make your first project in part 6. You do this once per Mac.</p>
+  <ol class="steps">
+    <li>Type the <b>server address</b> from the FinePoint team, your <b>email</b> and your <b>password</b>. Click <span class="ui">Sign in</span>.
+      <figure class="wide">
+        <img src="images/03-sign-in.png" alt="Upload to the cloud, signed out, with Server address, Email and Password boxes">
+      </figure>
+    </li>
+    <li>The box now says who you are signed in as, and shows <span class="ui">Upload</span>.
+      <figure class="wide">
+        <img src="images/04-signed-in.png" alt="Signed in as doctor@example.org with Sign out and Upload buttons">
+      </figure>
+    </li>
+  </ol>
+  </section>
+</section>
+
+<section>
+  <h2><span class="n">6</span>Upload a session</h2>
+  <h3>Make a project from the recording folder</h3>
+  <ol class="steps">
+    <li>On the Library page, click <span class="ui">New project</span>.</li>
+    <li>Go to the recording folder, the one with one folder per camera inside. Click a folder name to open it, or <span class="ui">Up</span> to go back.
+      If the Mac asks whether the app may open a folder or a drive, click <b>Allow</b>.
+      (<a href="https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac">Allow an app to open folders</a>)</li>
+    <li>Check the camera names. Leave the board numbers as they are.</li>
+    <li>Type a session name and click <span class="ui">Create the project</span>. The session's page opens.</li>
+  </ol>
+  <figure>
+    <img src="images/02-new-project.png" alt="The New project page with three camera folders found">
+    <figcaption>The New project page. Here it found three camera folders. Scroll down for the board numbers and the session name.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2><span class="n">6</span>Upload a session <span style="font-weight:500;color:var(--muted);font-size:13pt">continued</span></h2>
+  <h3>Send it to the cloud</h3>
+  <ol class="steps">
+    <li>On the session's page, sign in the first time only (see part 5). Then click <span class="ui">Upload</span>.</li>
+    <li>The bar shows how far the upload is and the time left.
+      <figure class="mid up">
+        <img src="images/05-uploading.png" alt="An upload under way at 30 percent with a Pause button">
+      </figure>
+    </li>
+    <li>It is done when the page says <b>Uploaded. Everything is in the cloud.</b>
+      <figure class="mid up">
+        <img src="images/06-uploaded.png" alt="Uploaded. Everything is in the cloud.">
+      </figure>
+    </li>
+  </ol>
+  <div class="note">
+    <p><span class="ui">Pause</span> stops the upload, and <span class="ui">Resume</span> carries on where it stopped. You can close the browser at any time. After a restart of the Mac, click the app's icon and the upload carries on.</p>
+  </div>
+</section>
+
+<section class="keep">
+  <h2><span class="n">7</span>If something goes wrong</h2>
+  <ul>
+    <li><p><b>The page asks you to sign in again.</b> Sign in again under <b>Upload to the cloud</b>. If you see <span class="ui">Sign out</span>, click it first.</p></li>
+    <li><p><b>The server address changed.</b> Ask the FinePoint team for the new one. Click <span class="ui">Sign out</span>, then sign in again with the new address.</p></li>
+    <li><p><b>Anything else.</b> Send the FinePoint team a screenshot.</p></li>
+  </ul>
+
+  <section class="keep avoid">
+  <h2><span class="n">8</span>Update the app</h2>
+  <p>When the FinePoint team says there is a new version, open Terminal, paste this line and press Return. It works like the install, and then the app opens in your browser.</p>
+<div class="cmd">git -C ~/finepoint-perception pull &amp;&amp; ~/finepoint-perception/install.command</div>
+  </section>
+</section>
+
+<section>
+  <h2><span class="n">9</span>For the FinePoint team</h2>
+  <p class="lead">The admin page is the server address followed by <span class="mono">/admin</span>. Sign in there with your admin account's email and password.</p>
+  <h3>Add a person</h3>
+  <ol class="steps">
+    <li>Under <b>People</b>, type the person's email and name, pick their lab, and click <span class="ui">Add person</span>. Tick <b>Admin</b> only for another FinePoint team member.
+      <figure class="mid">
+        <img src="images/08-admin-people.png" alt="The People table and the Add person form">
+      </figure>
+    </li>
+    <li>The page shows their set-password link once. Copy the whole link into an email to them. The server sends no email by itself.
+      <figure class="mid">
+        <img src="images/09-admin-link.png" alt="The admin page showing a new set-password link and the person as invited">
+        <figcaption>Your link starts with your lab's server address. The person shows as <b>invited</b> until they set a password.</figcaption>
+      </figure>
+    </li>
+  </ol>
+  <h3>Other buttons</h3>
+  <ul>
+    <li><span class="ui">New link</span> makes a new set-password link, for example when the old one ran out or the person forgot their password.</li>
+    <li><span class="ui">Disable</span> stops the person from signing in and uploading. <span class="ui">Enable</span> undoes it.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">10</span>Links</h2>
+  <p class="lead">Every link in this guide, in one place.</p>
+  <table>
+    <tr><th>Topic</th><th>Link</th></tr>
+    <tr><td>The app's project page</td><td><a href="https://github.com/saichandu-juluri/finepoint-perception">FinePoint Perception on GitHub</a><span class="url">github.com/saichandu-juluri/finepoint-perception</span></td></tr>
+    <tr><td>Does my Mac have an Apple chip?</td><td><a href="https://support.apple.com/en-us/116943">Mac computers with Apple silicon</a><span class="url">support.apple.com/en-us/116943</span></td></tr>
+    <tr><td>Which macOS do I have?</td><td><a href="https://support.apple.com/en-us/109033">Find out which macOS your Mac is using</a><span class="url">support.apple.com/en-us/109033</span></td></tr>
+    <tr><td>Update macOS</td><td><a href="https://support.apple.com/en-us/108382">Update macOS on Mac</a><span class="url">support.apple.com/en-us/108382</span></td></tr>
+    <tr><td>Free space</td><td><a href="https://support.apple.com/en-us/102624">Free up storage space on Mac</a><span class="url">support.apple.com/en-us/102624</span></td></tr>
+    <tr><td>Open Terminal</td><td><a href="https://support.apple.com/guide/terminal/open-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125/mac">Open or quit Terminal on Mac</a><span class="url">support.apple.com/guide/terminal/open-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125/mac</span></td></tr>
+    <tr><td>Developer tools</td><td><a href="https://developer.apple.com/documentation/xcode/installing-the-command-line-tools/">Installing the command-line tools</a><span class="url">developer.apple.com/documentation/xcode/installing-the-command-line-tools/</span></td></tr>
+    <tr><td>Git (optional, on its own)</td><td><a href="https://git-scm.com/install/mac">Git, install for macOS</a><span class="url">git-scm.com/install/mac</span></td></tr>
+    <tr><td>pixi (the installer adds it)</td><td><a href="https://pixi.prefix.dev/latest/installation/">pixi installation</a><span class="url">pixi.prefix.dev/latest/installation/</span></td></tr>
+    <tr><td>Safari (built in)</td><td><a href="https://support.apple.com/guide/safari/welcome/mac">Safari User Guide for Mac</a><span class="url">support.apple.com/guide/safari/welcome/mac</span></td></tr>
+    <tr><td>Google Chrome (optional)</td><td><a href="https://support.google.com/chrome/answer/95346?co=GENIE.Platform%3DDesktop&amp;hl=en">Download and install Google Chrome</a><span class="url">support.google.com/chrome/answer/95346</span></td></tr>
+    <tr><td>Let an app open folders</td><td><a href="https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac">Control access to files and folders on Mac</a><span class="url">support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac</span></td></tr>
+  </table>
+</section>
+
+</div>
+</body>
+</html>

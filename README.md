@@ -14,7 +14,7 @@ The video in full quality, and each step as its own short video: [videos](https:
 
 - A Mac with an Apple chip (M1 or newer) and macOS 14 or newer
 - About 3 GB of free disk space
-- From your admin: the server address, your email and a password. The admin's email has a link where you set the password.
+- From the FinePoint team: the server address, your email and a password. The team's email has a link where you set the password.
 
 ## Install
 
@@ -59,7 +59,7 @@ it matches the others, click **Save**, then click **Rerun the clock**.
 
 - The page asks you to sign in again: sign in again under **Upload to the cloud**. If you see **Sign out**, click it
   first.
-- Anything else: send your admin a screenshot.
+- Anything else: send the FinePoint team a screenshot.
 
 ## Update
 

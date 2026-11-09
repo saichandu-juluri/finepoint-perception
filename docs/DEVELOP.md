@@ -58,4 +58,4 @@ Ctrl+C stops both. No AWS.
 ## Windows
 
 `pixi.toml` also locks `win-64`, and `start-finepoint-perception.bat` starts the app there, but nothing has been tested
-on Windows.
+on Windows yet. `docs/WINDOWS.md` is the brief for testing and fixing it there.
